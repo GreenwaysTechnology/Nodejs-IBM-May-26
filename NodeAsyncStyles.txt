@@ -1,0 +1,695 @@
+Node.js Programming area
+
+1.Node REPL
+2.Node and js apis
+3.Node core apis
+4.Styles of writing async programming/non style
+   ->Callback pattern
+   ->Promise Pattern
+   ->Promise with Async and await Pattern
+
+
+Setup node.js:
+...............
+https://nodejs.org/en
+
+
+1.Node REPL - Read Evaluate Print loop
+
+ Node REPL is used to run js programs interactive mode.
+
+Js programs are executed in two modes
+
+1.interactive mode - REPL mode
+2.script mode - by loading script on to the runtime
+
+REPL:
+
+> let a =10
+undefined
+> a
+10
+> a *10
+100
+> name="Subramanian"
+'Subramanian'
+> name
+'Subramanian'
+> new Date()
+2025-01-20T07:20:42.624Z
+> Math.random()
+0.5686137549251014
+> Math.random()
+0.16463346625778552
+> document
+Uncaught ReferenceError: document is not defined
+> window
+Uncaught ReferenceError: window is not defined
+> process
+process {
+  version: 'v22.13.0',
+  versions: {
+    node: '22.13.0',
+    acorn: '8.14.0',
+    ada: '2.9.2',
+    amaro: '0.2.0',
+}
+...........................................................................................
+				Script mode
+...........................................................................................
+
+hello.js
+ console.log('hello')
+
+How to run?
+
+>node hello.js
+
+eg:
+G:\IBM\2025\Jan\Node\corenodeapp>node src/index.js
+hello node.js
+............................................................................................
+			   Async Programming/Non Blocking patterns
+.............................................................................................
+Fundamental Requirement:
+..............................................
+
+1.OS should support non blocking apis like select, poll,  Epoll,  kqueue, IOCP
+2.Program languages/platforms also should provide high level apis to map os low level apis
+
+Nonblocking Applications Development style:
+.................................................................................
+1.callbacks
+2.Promises
+3.Async await
+4.reactive programming 
+.............................................................................................
+
+Flow:
+1.Initalization phase: when you call an async function(nonblocking api) provided by node.js
+ ->Registers your callback
+   1.callbacks:
+  Callback is listener function which gets registered during compile time
+  and executed during runtime by the event loop when ever the event is emitted by kernel or application
+->Hands off the IO operation to Libuv
+-->Immediately returns control to continue executing other code.
+
+2.Delegation Phase : Libuv handles the IO using two methods
+ 2.1.OS Level async apis (for network io operations)- uses native async features like epool 
+      and os notifies when data is ready
+2.2.Thread pool: (for file operations)  - Assigns the work to a worker thread from the pool.
+
+3.Completion phase: When IO completes 
+ 3.1.Libuv receives notification from the os
+ 3.3.The callback is queued in the event loop thread
+ 3.4.the event loop thread executes the callback when it gets data.
+  
+event : 
+  signal 
+eg: data is ready, error occurred, operation is completed
+
+event contains:
+ 1.Name of the event - data, error, close
+ 2.data
+
+Req for async programming:
+ 
+1.You need high level non blocking api - provided by node.js 
+2.listener api which is called "function as parameter/hof" 
+
+HOF functions are becoming listeners/callbacks which are called when ever event is emitted.
+
+Nonblocking apis:
+
+1.timer
+   -setTimeout
+   -setInterval
+2.io
+   web
+   fs
+   socket
+ etc...
+3.process api
+  nextTick
+
+...................................................................................
+			How to implement non blocking using timers
+...................................................................................
+
+create new project
+
+mkdir asyncstyles
+
+
+Use case: sync flow
+
+//callbacks -sync flow
+
+function blockMe(message){
+  console.log(message)
+}
+function greet(){
+    console.log('greet')
+}
+function main(){
+  blockMe('start')
+  greet()
+  blockMe('end')
+
+}
+main()
+
+
+Use case async flow:
+//callbacks -sync flow
+
+function blockMe(message) {
+    console.log(message)
+}
+function delay(cb) {
+   // cb()
+   setTimeout(cb,5000)
+}
+function main() {
+    blockMe('start')
+    delay(function () {
+        console.log('delay')
+    })
+    blockMe('end')
+
+}
+main()
+
+Usecase : timer with data
+//callbacks -sync flow
+
+function blockMe(message) {
+    console.log(message)
+}
+function delay(cb) {
+   setTimeout(cb,5000,'delay')
+}
+function main() {
+    blockMe('start')
+    delay(function (data) {
+        console.log(data)
+    })
+    blockMe('end')
+
+}
+main()
+********************************
+
+Complex Flow:
+
+const login = (userName, password, resolve, reject) => {
+    //biz logic
+    if (userName === 'admin' && password === 'admin') {
+        setTimeout(resolve, 1000, 'Login Success')
+    } else {
+        setTimeout(reject, 1000, 'Login failed')
+    }
+}
+
+
+function main() {
+    login('admin', 'admin', (status) => { console.log(status) }, (err) => { console.log(err) })
+    login('xx', 'yy', (status) => { console.log(status) }, (err) => { console.log(err) })
+
+}
+main()
+********************************************************************************************************************************************************
+										Nested Callbacks
+......................................................................................................................................................................................................................................
+
+The output of one callback will be input into another callback -  async composition.
+
+//callback nesting: the output of one callback will be input to another callback
+
+//getUser ---> login ---> showdashboard
+
+const getUser = (resovle, reject) => {
+    console.log('getUser is called')
+    let user = {
+        name: 'admin'
+    }
+   // user=null
+    if (user) {
+        setTimeout(resovle, 1000, user)
+    } else {
+        setTimeout(reject, 1000, 'User is not found')
+    }
+}
+
+const login = (user, resovle, reject) => {
+    console.log('login is called')
+    if (user.name === 'admin') {
+        setTimeout(resovle, 1000, 'login is success')
+    } else {
+        setTimeout(reject, 1000, 'login is failed')
+    }
+}
+const showDashboard = (status, resovle, reject) => {
+    console.log('showDashboard is called')
+    if (status === 'login is success') {
+        setTimeout(resovle, 1000, 'welcome to dashboard')
+    } else {
+        setTimeout(reject, 1000, 'welcome to guest')
+    }
+}
+
+function main() {
+    getUser((user) => {
+        login(user, status => {
+            showDashboard(status, (page) => {
+                console.log(page)
+            }, (err) => {
+                console.log(err)
+            })
+        }, err => console.log(err))
+    }, (err) => {
+        console.log(err)
+    })
+}
+main()
+***********************************************************************************************************************************************************
+										Callback Hell
+************************************************************************************************************************************************************
+function main() {
+    getUser(user => {
+        login(user, status => {
+            showDashboard(status, (page) => {
+                console.log(page)
+            }, (err) => {
+                console.log(err)
+            })
+        }, err => {
+            console.log(err)
+        })
+    }, err => {
+        console.log(err)
+    })
+
+}
+main()
+
+****************
+
+fs.readdir(source, function (err, files) {
+  if (err) {
+    console.log('Error finding files: ' + err)
+  } else {
+    files.forEach(function (filename, fileIndex) {
+      console.log(filename)
+      gm(source + filename).size(function (err, values) {
+        if (err) {
+          console.log('Error identifying file size: ' + err)
+        } else {
+          console.log(filename + ' : ' + values)
+          aspect = (values.width / values.height)
+          widths.forEach(function (width, widthIndex) {
+            height = Math.round(width / aspect)
+            console.log('resizing ' + filename + 'to ' + height + 'x' + height)
+            this.resize(width, height).write(dest + 'w' + width + '_' + filename, function(err) {
+              if (err) console.log('Error writing file: ' + err)
+            })
+          }.bind(this))
+        }
+      })
+    })
+  }
+})
+
+
+Questions:
+
+1.Whether this code is able to understand quickly
+2.Whether this code is able to debug
+3.Whehter this code is scalable?
+4.whether this code is maintainable?
+
+No
+ "Callback Hell"
+
+						"Callback Hell is nothing but over use of nested callbacks"
+
+  -It is not bug or error in code
+ -It is way of writing callback based program
+ -Callback based non blocking programming hard to understand, maintain, debug, scale Which   called as "Callback Hell".
+
+**********************************************************************************************************************************************************
+						How to write better async/non blocking code without callbacks?
+
+-Generally without callbacks not possible to write async/non blocking code.
+-Rather we can abstract complexity of writing callbacks.
+
+Solution: 
+ Promises:
+
+In 2005, JQUERY team started with working complex callback patterns, they found callback hell problem.
+
+JQuery Proposed Promise implementation and later it became standard -Design pattern
+
+What is Promise?
+    Promise is a design pattern, proposed to simplify the complex nested callbacks
+
+Since Promise is design pattern, many people have implemented Promise design pattern.
+
+1.JQuery -first promise implementation
+2.many libs and frameworks
+
+************************************************************************************************************************************************************
+		In order standardize , ECMA committee decided to include Promise Design pattern at language level .(ES 6)
+	 	In 2012 E6 Committee introduced promise design pattern  as  "Promise" Object  in JavaScript.	
+
+Promise Implementation
+..........................................
+
+Features of Promise Object:
+1.Promise by default is Async. Which implements timer api with 0 ms .
+2.Promise can be used with any async callback based  implementations.
+
+Objective:
+
+ To remove callbacks in async/non blocking code. write cleaner async programming.
+ To remove complex callback chaining code.
+
+
+Difference between callbacks and promises:
+**************************************************
+		Essentially, a promise is a returned object to which you attach callbacks, instead of passing callbacks into a function.
+
+
+Promise Implementation: Object  creations
+......................................................................
+
+1. Create Promise Object from Promise constructor
+      new Promise()
+2. Create Promise object from factory apis 
+      Promise.resolve() / Promise.reject()
+
+Promise object methods:
+
+1.then - success
+2.catch - errors
+3.finally - clean up
+
+factory api to create Promise object
+4.resolve
+5.reject
+.......................................
+6.all
+7.race
+
+
+1.Promise factory api
+   -success - resolve
+   -failure - reject
+
+Use case:
+Basic promise implementation:
+
+In promises , you don't need to pass function as parameter
+Promise with Success and also ensure that Promise is async.
+
+
+Use case: Simple Promise with success:
+
+function blockMe(message) {
+    console.log(message)
+}
+function getPromise() {
+    return Promise.resolve('Hello')
+}
+
+function main() {
+    blockMe('start')
+    getPromise().then(status => console.log(status))
+    blockMe('end')
+}
+main()
+
+Use case: Error
+
+function blockMe(message) {
+    console.log(message)
+}
+function getError() {
+    //factory method to return promise with 0ms
+    return Promise.reject('something went wrong')
+}
+
+function main() {
+    blockMe('start')
+    getError().catch(err => console.log(err))
+    blockMe('end')
+}
+main()
+
+Use case Both success and Error:
+
+function blockMe(message) {
+    console.log(message)
+}
+function login(userName, password) {
+    if (userName === 'admin' && password === 'admin') {
+        return Promise.resolve('login success')
+    } else {
+        return Promise.reject('login failed')
+    }
+}
+
+function main() {
+    blockMe('start')
+    login('admin', 'admin')
+        .then(status => console.log(status))
+        .catch(err => console.log(err))
+    blockMe('end')
+
+    login('ddd', 'adfa')
+        .then(status => console.log(status))
+        .catch(err => console.log(err))
+    blockMe('end')
+}
+main()
+
+*******************************************************************************************************************************************************
+Promise Constructor API:
+...........................................
+Use case Promise with Timeout/any non blocking implementation:
+..............................................................
+
+function blockMe(message) {
+    console.log(message)
+}
+function login(userName, password) {
+    if (userName === 'admin' && password === 'admin') {
+        //timer with promise
+        return new Promise((resolve, reject) => {
+            //any async apis
+            setTimeout(resolve, 1000, 'login success')
+        })
+    } else {
+        return new Promise((resolve, reject) => {
+            //any async apis
+            setTimeout(reject, 1000, 'login failed')
+        })
+    }
+}
+
+function main() {
+    blockMe('start')
+    login('admin', 'admin')
+        .then(status => console.log(status))
+        .catch(err => console.log(err))
+
+    login('ddd', 'adfa')
+        .then(status => console.log(status))
+        .catch(err => console.log(err))
+    blockMe('end')
+}
+main()
+************************************************************************************************************************************************************											Callback Hell and Promises
+************************************************************************************************************************************************************
+//get user,verify the user is valid, show dashboard if valid say admin other say guest
+
+const getUser = () => {
+    console.log('getUser is called')
+    return new Promise((resolve, reject) => {
+        //declare mock user
+        let user = { name: 'admin' }
+        // let user;
+        if (user) {
+            setTimeout(resolve, 1000, user)
+        } else {
+            setTimeout(reject, 1000, 'User not found')
+        }
+    })
+}
+const login = user => {
+    console.log('login is called')
+    return new Promise((resolve, reject) => {
+        if (user.name === 'admin') {
+            setTimeout(resolve, 1000, 'Login is Success')
+        } else {
+            setTimeout(reject, 1000, 'Login is Failed')
+        }
+    })
+}
+const showDashboard = status => {
+    console.log('showDashboard is called')
+    return new Promise((resolve, reject) => {
+        if (status === 'Login is Success') {
+            setTimeout(resolve, 1000, 'Welcome to Admin')
+        } else {
+            setTimeout(reject, 1000, 'Welcome  to Guest')
+        }
+    })
+}
+function main() {
+    // getUser(user => {
+    //     login(user, status => {
+    //         showDashboard(status, (admin) => {
+    //             console.log(admin)
+    //         }, err => {
+    //             console.log(err)
+    //         })
+    //     }, err => {
+    //         console.log(err)
+    //     })
+    // }, err => {
+    //     console.log(err)
+    // })
+
+    // getUser()
+    //     .then(user => {
+    //     login(user)
+    //         .then(status => {
+    //             showDashboard(status)
+    //                 .then(page => console.log(page))
+    //                 .catch(err => console.log(err))
+    //         })
+    //         .catch(err => console.log(err))
+    // }).catch(err => console.log(err))
+
+    // getUser()
+    //     .then(user => {
+    //         return login(user)
+    //     })
+    //     .then(status => {
+    //         return showDashboard(status)
+    //     })
+    //     .then(page => { console.log(page) })
+    //     .catch(err => console.log(err))
+    getUser()
+        .then(user => login(user))
+        .then(status => showDashboard(status))
+        .then(page => console.log(page))
+        .catch(err => console.log(err))
+
+}
+main()
+*******************************************************************************************************************************************************
+									async...await
+******************************************************************************************************************************************************
+ getUser()
+        .then(user => login(user))
+        .then(status => showDashboard(status))
+        .then(page => console.log(page))
+        .catch(err => console.log(err))
+
+
+Here we have so many "thens" or "thenables".
+
+In order reduce thenables, ES 7 Introduced new key words to abstract promise then and catch are "async and await"
+async keyword:
+
+1.in front of function we use async keyword, meaning that the function returns promise by default with success only.
+
+
+Use case :return promise with async function:
+
+// function getValue() {
+//     return Promise.resolve(10)
+// }
+async function getValue() {
+    return 10 // return Promise.resolve(10)
+}
+function main() {
+    getValue().then(value => console.log(value))
+}
+main()
+
+Use case: await: keyword:
+
+function getValue() {
+    return Promise.resolve(10)
+}
+// async function getValue() {
+//     return 10 // return Promise.resolve(10)
+// }
+async function main() {
+    const value = await getValue()
+    console.log(value)
+}
+main()
+
+..
+Use case : Promise thenables and async ....await.
+
+const getUser = () => {
+    console.log('getUser is called')
+    return new Promise((resovle, reject) => {
+        let user = {
+            name: 'admin'
+        }
+        // user=null
+        if (user) {
+            setTimeout(resovle, 1000, user)
+        } else {
+            setTimeout(reject, 1000, 'User is not found')
+        }
+    })
+}
+
+const login = user => {
+    console.log('login is called')
+    return new Promise((resovle, reject) => {
+        if (user.name === 'admin') {
+            setTimeout(resovle, 1000, 'login is success')
+        } else {
+            setTimeout(reject, 1000, 'login is failed')
+        }
+    })
+}
+const showDashboard = status => {
+    console.log('showDashboard is called')
+    return new Promise((resovle, reject) => {
+        if (status === 'login is success') {
+            setTimeout(resovle, 1000, 'welcome to dashboard')
+        } else {
+            setTimeout(reject, 1000, 'welcome to guest')
+        }
+    })
+}
+
+async function main() {
+
+    // getUser()
+    //     .then(user => login(user))
+    //     .then(status => showDashboard(status) )
+    //     .then(page => console.log(page))
+    //     .catch(err => console.log(err))
+    try {
+        const user = await getUser()
+        const status = await login(user)
+        const page = await showDashboard(status)
+        console.log(page)
+    }
+    catch (err) {
+        console.log(err)
+    }
+
+}
+main()
+

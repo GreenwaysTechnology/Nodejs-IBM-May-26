@@ -1,0 +1,16 @@
+1.Node.js Architecture 
+2.Programming with Node.js
+  JavaScript and Typescript
+3.Node.js Non blocking and async programming styles and patterns
+4.node.js module systems and packages
+5.file system operations
+6.Web apps using node
+7.fundamentals of npm package manager
+8.Frameworks
+    8.1. Express.js for building apis
+    8.2. Database programming using Prisma framework
+9.Microservices development using
+    9.1. Moleculer.js
+    9.2. Nest.js 
+
+
