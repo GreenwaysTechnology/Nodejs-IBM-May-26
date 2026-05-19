@@ -1,0 +1,263 @@
+				Modules Pattern
+...................................................................................
+
+JavaScript was created only for very limited use case -browsers, not for enterprise computing
+so JavaScript programs were written in 2 or 3 files.
+
+Incase if you want to access the code of one file inside another file how to access?
+  File based
+
+1.js
+function sayHello(){
+ console.log('hello')
+}
+
+2.js
+ now i need to call sayHello in 2.js file
+
+ function main() {
+   sayHello()
+}
+
+index.html
+
+<html>
+ <head>
+   <script src="1.js"></script>
+   <script src="2.js"><script>
+</head>
+
+What if code grows, we cant include script tag?
+
+Birth of module design pattern
+
+
+1.Namespace design pattern : 2000 : jQuery
+2.AMD -Async Module Definition : dojo
+---------------------------------------------------------
+3.CJS - Common JS =  namespace + amd :2005 on wards
+4.ES 6 Module design pattern :2012-2015  = amd + cjs
+------------------------------------------------------------
+5.System : 2007 = AMD = CJS + ES 6
+6.UMD : 2008 = NAMESPACE + AMD + CJS = ES 6
+
+Now a days only these two patterns available in coding
+3.CJS - Common JS =  namespace + amd :2005 on wards
+4.ES 6 Module design pattern :2012-2015  = amd + cjs
+
+....................................................................................
+				Commonjs-CJS
+.....................................................................................
+CJS was introduced inside node.js, even today common js is low level implementation
+
+How to share code? How to import code?
+
+ Code:
+  Could be variables, functions, classes.
+  Variables can have any literal string, numbers, boolean, objects, functions...
+
+src
+  |
+  subfolders
+|
+index.js
+
+Sharing code :
+
+Keywords
+
+1.exports
+2.module.exports
+
+Importing code:
+
+1.require('filename')
+2.require('folder Name/filename')
+
+create project
+>modulesapp
+exports:
+ exports is just variable, its value would be object
+ eg: let exports = {}
+ exports.something =000
+
+ Used to share more code from the single file.
+ exports packs the entire code into one single js object and returns that object
+
+eg:
+//code to be shared
+src/lib.js
+
+exports.name = 'Subramanian'
+exports.age = 18
+exports.status = true
+exports.address = {
+    city: 'Coimbatore'
+}
+exports.calcualte = function () {
+    return 10
+}
+//exports = {name,age,status,address,calcualte}
+
+src/index.js
+const info = require('./lib')
+
+function main(){
+  console.log(info)
+  console.log(info.name,info.age,info.status,info.calcualte(),info.address)
+}
+main()
+...
+module.exports:
+
+src/services/todo.service.js
+
+class TodoService {
+
+    findAll() {
+        return [{ id: 1, status: true, text: 'learn AI' }]
+    }
+}
+//share the class
+module.exports = TodoService
+
+src/index.js
+const TodoService = require('./services/todo.service')
+function main(){
+    console.log(TodoService)
+    //create Object
+    const todoService = new TodoService()
+    console.log(todoService.findAll())
+}
+main()
+........................
+Return Object:
+class TodoService {
+
+    findAll() {
+        return [{ id: 1, status: true, text: 'learn AI' }]
+    }
+}
+//share the class
+// module.exports = TodoService
+
+//share object of the class
+module.exports = new TodoService()
+
+src/index.js
+const todoService = require('./services/todo.service')
+function main() {
+    console.log(todoService.findAll())
+}
+main()
+
+.....................................................................................
+			   ES 6 module pattern
+.....................................................................................
+
+How to share code and how to import code?
+
+export,export default == exports and module.exports
+
+import === require()
+
+Note:
+   Node.js 15 version before , does not support es6 modules directly
+   if you want to run es6 module code on, you have to convert into cjs code and run.
+  In latest nodes.js version, you can run es6 modules directly with some configuration.
+
+How to run es 6 modules in node?
+
+There are two patterns
+
+1.using build tools
+2.modern node js require some configuration inside a file called "package.json"
+
+src/lib.js
+export const name = 'Subramaian Murugan'
+
+src/index.js
+import { name } from "./lib.js";
+
+function main() {
+    console.log(name)
+}
+main()
+node src/index.js
+(node:6020) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///G:/IBM/2025/Jan/Node/es6modules/src/index.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to G:\IBM\2025\Jan\Node\es6modules\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Subramaian Murugan
+
+package.json
+{
+  "name": "moduleapps",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
+..............................................................
+
+Solution 2:
+convert that file into .mjs extension
+lib.mjs
+export const name = 'Subramaian Murugan'
+..............................................................................................
+export default
+
+To export only one thing at a time.
+
+Usefull for class,functions,mockdata exporting....
+
+
+src/services/customer.service.js
+
+// export default class CustomerService {
+//     constructor() {
+
+//     }
+//     findAll() {
+//         return 'customers'
+//     }
+// }
+
+class CustomerService {
+    constructor() {
+
+    }
+    findAll() {
+        return 'customers'
+    }
+}
+
+export default CustomerService;
+
+
+src/index.js
+
+import { firstName, lastName, salary } from "./util/mylib.js";
+import CustomerService from './services/customer.service.js'
+
+console.log(firstName, lastName, salary)
+let custService = new CustomerService()
+console.log(custService.findAll())
+
+
+..............................................................................................
+				Async code and modules
+
+
+TasK;
+ create some service class may be productservcice, it should return promise with data
+ in the main program you can get data along with promise : you can use async..await
+
+
+ 
