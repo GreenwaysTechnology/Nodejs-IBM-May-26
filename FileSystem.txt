@@ -1,0 +1,880 @@
+....................................................................................
+			  IO apis
+....................................................................................
+1.file system io
+   file system io , how to read data from disk file
+2.network io
+
+File System IO:
+
+=>We can read and write files from the disk in  two ways
+  1.blocking way
+  2.nonblocking way
+=>We can read and write files using two mode
+  1.NonStreaming mode
+  2.Streaming mode
+
+=>All file operations are handled by
+  "Worker Threads" from Worker Thread Pool - either it is blocking or non blocking    io.
+=>Files are handled using callback style or promise style.
+=>Files operations are handled by "node: fs" module
+
+......................................................................................................................................................................................................................................
+											 File system operations
+.....................................................................................................................................................................................................................................
+
+1.create,read,write,update,delete,rename files and directories
+
+Two styles:
+
+1.callback style
+	 require('node:fs')
+2.promise style
+        require('node:fs/promises')
+
+Async                                            Sync
+fs.readFile                                  fs.readFileSync
+fs.writeFile                                  fs.writeFileSync
+fs.appendFile                             fs.appendFileSync
+fs.unlink                                      fs.unlinkSync   -- delete file
+etc...
+
+Async Read and Write:
+
+How to read File using nonblocking pattern? using callbacks
+
+fs.readFile(path[, options], callback)
+
+path <string> | <Buffer> | <URL> | <integer> filename or file descriptor
+options <Object> | <string>
+ encoding <string> | <null> Default: null
+ flag <string> See support of file system flags. Default: 'r'.
+ signal <AbortSignal> allows aborting an in-progress readFile
+
+callback <Function>
+  err <Error> | <AggregateError>
+  data <string> | <Buffer>
+
+const fs = require('node:fs')
+
+function blockMe(message) {
+    console.log(message)
+}
+
+function main() {
+    blockMe('start')
+    const filePath = './src/assets/info.txt'
+    const options = {
+        encoding: 'UTF-8'
+    }
+    fs.readFile(filePath, options, (err, data) => {
+        if (err) throw err
+        console.log(data)
+    })
+    blockMe('end')
+}
+main()
+***********************************************************************************************************************************************************
+											Create/Write a File
+***********************************************************************************************************************************************************
+
+const fs = require('node:fs')
+function createNewFile() {
+    const filePath = './src/assets/demo.txt'
+    const content = 'This is sample demo'
+    fs.writeFile(filePath, content, (err) => {
+        if (err) throw err
+        console.log(`File "${filePath}" created`)
+    })
+}
+function main() {
+    createNewFile()
+}
+main()
+*********************************************************************************************************************************************************
+										 File append
+
+Use case: Custom Logger in node that writes log messages to a file using api
+
+fs.writeFile
+fs.appendFile
+
+You can log
+info
+Errors
+Timestamps
+
+const fs = require('node:fs')
+const logFile = './app.log'
+function logMessage(level, message) {
+    const timeStamp = new Date().toISOString()
+    const fullMessage = `[${timeStamp}] [${level.toUpperCase()}] ${message} \n`
+    //append file
+    fs.appendFile(logFile, fullMessage, (err) => {
+        if (err) {
+            console.log(`X Failed to write log`, err)
+        }
+    })
+}
+function info(msg) {
+    logMessage('info', msg)
+}
+function error(msg) {
+    logMessage('error', msg)
+}
+function warn(msg) {
+    logMessage('warn', msg)
+}
+function main() {
+    info('Web Server started on Port 3000')
+    info('Database Server started on Port 1434')
+    error('Unable to Start Message Broker')
+    warn('High Memory Usage has been detected')
+}
+main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									 File System Operations Using Promises
+****************************************************************************************************************************************************
+fs.readFile, fs.writeFile,fs.appendFile are callback based apis
+
+How to convert these apis into promise?
+
+1.Using custom promises - you convert the callback apis into promises
+2.Using node:fs/promises module
+
+
+Custom Promise:
+const fs = require('node:fs')
+
+//callback based
+// function readTextFile() {
+//     const filePath = './src/assets/info.txt'
+//     const options = {
+//         encoding: 'UTF-8'
+//     }
+//     fs.readFile(filePath, options, (err, data) => {
+//         if (err) throw err
+//         console.log(data)
+//     })
+// }
+
+async function getValue(){
+    return 10 // Promise.resolve(10)
+}
+async function readTextFile() {
+    return new Promise((resolve, reject) => {
+        const filePath = './src/assets/info.txt'
+        const options = {
+            encoding: 'UTF-8'
+        }
+        fs.readFile(filePath, options, (err, data) => {
+            if (err) {
+                reject(err)
+            } else {
+                resolve(data)
+            }
+        })
+    })
+}
+
+async function main() {
+    //  readTextFile().then(data=>console.log(data)).catch(err=>console.log(err))
+    try {
+        const data = await readTextFile()
+        console.log(data)
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+main()
+******************
+Promise Apis:
+......................
+const fs = require('node:fs/promises')
+
+async function readTextFile() {
+    const filePath = './src/assets/info.txt'
+    const options = {
+        encoding: 'UTF-8'
+    }
+    // fs.readFile(filePath, options)
+    //     .then(data => console.log(data))
+    //     .catch(err => console.log(err))
+    try {
+        const data = await fs.readFile(filePath, options)
+        console.log(data)
+    }
+    catch (err) {
+        console.log(Error)
+    }
+}
+
+function main() {
+    readTextFile()
+}
+main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										  File Path And path module
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+The path module provides utilities for working with file and directory paths.
+
+-node provides lot of global variables
+
+__dirname  : current directory name
+__filename : current directory name + fileName
+const path = require('node:path')
+
+function main() {
+    //path.join helps to build paths
+    const mypath = path.join('users', 'subramanian', 'murugan', 'docs', 'info.txt')
+    console.log(mypath)
+    const absolutePath = path.join(__dirname,'config','config.json')
+    console.log(absolutePath)
+
+    //get file only
+    const fileName = path.basename(absolutePath)
+    console.log(fileName)
+    //get directory only
+    const dirName = path.dirname(absolutePath)
+    console.log(dirName)
+
+    //get the file Extension
+    const extension = path.extname(fileName)
+    console.log('extension :',extension)
+    
+    //convert path into object - decompose a path into parts
+    const pathparts = path.parse(absolutePath)
+    console.log('pathparts',pathparts)
+
+    //convert pathparts into path
+    const realPath = path.format(pathparts)
+    console.log('realPath',realPath)
+}
+main()
+
+
+
+const fs = require('node:fs/promises')
+const path = require('node:path')
+
+async function readTextFile() {
+    //const filePath = './src/assets/info.txt'
+    const filePath = path.join(__dirname, 'assets/info.txt')
+    const options = {
+        encoding: 'UTF-8'
+    }
+    try {
+        const data = await fs.readFile(filePath, options)
+        console.log(data)
+    }
+    catch (err) {
+        console.log(Error)
+    }
+}
+
+function main() {
+    readTextFile()
+}
+main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										Blocking File operations
+									 	   (fs.readFileSync)
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+fs.readFileSync(filePath,options)
+
+const fs = require('node:fs')
+const path = require('node:path')
+
+function readTextFile() {
+    const filePath = path.join(__dirname, 'assets/info.txt')
+    const options = {
+        encoding: 'UTF-8'
+    }
+    console.log('start')
+    const data = fs.readFileSync(filePath,options)
+    console.log(data)
+    console.log('end')
+}
+
+function main() {
+    readTextFile()
+}
+main()
+Use case: Using fs and Event Emitter
+In production applications , apps constantly write logs  to a file. if a log file gets too large,it crashes the server or becomes impossible to open
+We can use EventEmitter to watch the file size and trigger a rotation(archiving the old file and starting a new one) when a limit is reached
+lets say 10 mb is my file size.
+
+How to implement
+
+1.A background checks the file size using fs.stat()
+2. if the file size exceeds 10mb/10kb, it emits a rotate event.
+3.The listener  renames the old file to "xxxx" using fs.rename() and creates new a fresh app.log file
+
+const fs = require('node:fs/promises')
+const EventEmitter = require('node:events')
+const path = require('node:path')
+
+//event emitter class which watches file size
+class LogRotator extends EventEmitter {
+    constructor(logFilePath, maxSizeBytes = 1024 * 1024 * 10) {
+        super()
+        this.logFilePath = logFilePath
+        this.maxSizeBytes = maxSizeBytes
+        this.checkInterval = null
+    }
+    startMonitoring(intervalMS = 2000) {
+        console.log(`[Rotator] started Monitoring ${this.logFilePath}`)
+        this.checkInterval = setInterval(async () => {
+            try {
+                //1. Check the file size using fs.stat
+                const stats = await fs.stat(this.logFilePath)
+                if (stats.size >= this.maxSizeBytes) {
+                    console.log(`[Rotator] File size (${stats.size} bytes) exceeded limit
+                        (${this.maxSizeBytes}) bytes`)
+                    //2.Emit the 'rotat' event
+                    this.emit('rotate')
+                }
+            }
+            catch (err) {
+                //if file does not exit , ignore the error and wait for logs to be written
+                if(err.code!=='ENOENT'){
+                    console.error('[Rotator Error]',error)
+                }
+            }
+        }, intervalMS);
+    }
+    stopMonitoring() {
+        if (this.checkInterval) {
+            clearInterval(this.checkInterval)
+        }
+    }
+}
+
+
+
+function main() {
+
+}
+main()
+
+
+
+
+
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										 File Read and Write Mode
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+1.Non Streaming Mode
+2.Streaming Mode
+
+		Differences between streaming(fs.createReadStream)    and Non Streaming (fs.readFile())
+
+ Features                                    fs.readFile                                                                      fs.createReadStream
+
+ ReadFile                                   All at once(entire file in Memory)                                  In small Chunks(streamed)
+
+Memory Usage                         High for large files                                                          Low and efficient for large files
+
+Callback based                         Yes                                                                                  Event based - data, end , error
+
+Blocking nature                         Async, but still waits for whole file                                  streams data progressively
+
+Best For                                     Small config/data files                                                     Large files like logs, media 
+
+Types of Streams:
+
+1.Readable Stream : input
+2.Writeable stream : output
+3.Duplex stream : read + write
+
+Node has lot of built in stream apis
+....................................
+
+Built in readable Streams:
+
+-HTTP responses, on the client
+-HTTP requests, on the server
+-fs read streams
+-zlib streams
+-crypto streams
+-TCP sockets
+-child process stdout and stderr
+-process.stdin
+
+Writable Streams:
+
+-HTTP requests, on the client
+-HTTP responses, on the server
+-fs write streams
+-zlib streams
+-crypto streams
+-TCP sockets
+-child process stdin
+-process.stdout, process.stderr
+
+All streaming apis are powered with events
+node io streams has built in events.
+events are emitted by node.
+Our programs are listeners
+
+
+Common events in all io
+.........................
+1.data event:
+ which is emitted by node, for each chunk.
+
+2.close event:
+  The 'close' event is emitted when the stream and any of its underlying resources (a file descriptor, for example) have been closed.
+
+3.end event:
+ The 'end' event is emitted when there is no more data to be consumed from the stream.
+
+4.Event: 'error'
+ The 'error' event may be emitted by a Readable implementation at any time
+Typically, this may occur if the underlying stream is unable to generate data due to an underlying internal failure, or when a stream implementation attempts to push an invalid chunk of data.
+
+
+const fs = require('node:fs')
+const path = require('node:path')
+
+function readTextFile() {
+    const filePath = path.join(__dirname, 'assets/info.txt')
+    const options = {
+        encoding: 'UTF-8'
+    }
+    const inputstream = fs.createReadStream(filePath, options)
+
+    //register events for reading data
+    let data=''
+    inputstream.on('data', (chunk) => {
+        //console.log(chunk)
+        data+=chunk
+    })
+    inputstream.on('end', () => {
+        console.log('there is no more')
+        console.log(data)
+    })
+    inputstream.on('close', () => {
+        console.log('close ')
+    })
+    inputstream.on('error', (err) => {
+        console.log(err)
+    })
+}
+function main() {
+    readTextFile()
+}
+main()
+*****************************************************************************
+
+Write File:
+..................
+
+const fs = require('node:fs')
+const path = require('node:path')
+
+function write() {
+    let filePath = path.join(__dirname, 'assets/todos.json')
+    const config = {
+        encoding: 'utf8',
+        flag: 'w'
+    };
+    const outputStream = fs.createWriteStream(filePath, config)
+    //data
+    const todos = [{ text: 'learn Js', status: 'completed' }, { text: 'learn node', status: 'in Progress' }]
+    let jsonTodos = JSON.stringify(todos)
+
+
+    outputStream.write(jsonTodos)
+    //attach events
+    outputStream.close();
+
+    outputStream.on('close', function () {
+        console.log('file has been written ')
+    })
+
+}
+function main(){
+    write()
+}
+main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										Back pressure
+*******************************************************************************************************************************************************
+Backpressure is a mechanism for controlling data flow between a fast producer (reading file) and slow consumer( writing to a network,file or any stream).
+ Problems when you do read and write together
+
+1. In general read operation is faster than write operation
+
+			Back Pressure means inputstream is fast, outputstream slow, then data will be lost.
+
+Without Back Pressure Handling
+
+1.Producer sends data too fast
+2.The consumer cant process it quickly enough
+3.Memory fills up - > crash or degraded performance
+
+With Back Pressure Handling
+- The producer pauses when the consumer internal buffer is full
+->it resumes when the consumer is ready again
+
+How to handle back pressure?
+
+ apis  : pause ,resume, drain event
+pause : to close the upstream, not to emit data
+resume : to open the  upstream , to emit data
+drain event: if drain event is called, means buffer is empty
+
+Before Testing BackPressure , we need bigFile
+
+//big file creation
+const fs = require('node:fs');
+const path = require('node:path')
+
+const filePath = path.join(__dirname, "assets/big.file")
+
+const file = fs.createWriteStream(filePath);
+
+for (let i = 0; i <= 1e6; i++) {
+    file.write('Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n');
+}
+
+How to handle back pressure using pause,resume,drain?
+
+const fs = require('node:fs');
+const path = require('node:path');
+
+const inputfileName = path.join(__dirname, 'assets/big.file');
+const outputfileName = path.join(__dirname, 'assets/bigcopy.file');
+
+const config = {
+    encoding: 'UTF-8'
+}
+const readerStream = fs.createReadStream(inputfileName, config);
+const writeStr = fs.createWriteStream(outputfileName, config);
+
+readerStream.on('data', function (chunk) {
+    console.log(`Received ${chunk.length} bytes of data.`);
+    let buffer_good = writeStr.write(chunk);
+    if (!buffer_good) readerStream.pause();
+});
+writeStr.on('drain', function () {
+    console.log('buffer drained!');
+    readerStream.resume();
+});
+readerStream.on('end', function () {
+    // console.log(data);
+});
+
+readerStream.on('error', function (err) {
+    console.log(err.stack);
+});	
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									Backpressure Handling using pipe
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Pipe method to eliminate backpressure apis(drain,resume,pause)
+
+const fs = require('node:fs');
+const path = require('node:path');
+
+const inputfileName = path.join(__dirname, 'assets/big.file');
+//write
+const outputFileName = path.join(__dirname, 'assets/bigcopy.file');
+
+const config = {
+      encoding: 'UTF-8'
+}
+
+//Back pressure handling
+const readerStream = fs.createReadStream(inputfileName, config);
+const writeStr = fs.createWriteStream(outputFileName, config);
+
+//backPressure streams
+//pipe method is simplest method which wraps resume,pasuse,drain 
+readerStream.pipe(writeStr);
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+								Simulation of Streaming and Non Streaming Patterns
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Big File Creation:
+generate-file.js
+// generate-file.js
+// Creates a large test file to simulate reading
+
+const fs = require('node:fs');
+const path = require('node:path');
+
+const TARGET_MB = 1500; // Change this — use 1500+ to guarantee crash on most systems
+const OUTPUT_FILE = path.join(__dirname, 'assets/largefile.txt');
+
+console.log(`Generating ${TARGET_MB} MB file at: ${OUTPUT_FILE}`);
+console.log('This may take a few seconds...\n');
+
+const stream = fs.createWriteStream(OUTPUT_FILE);
+const chunkMB = 10;
+const chunk = Buffer.alloc(chunkMB * 1024 * 1024, 'A'); // 10 MB of 'A' characters
+const totalChunks = TARGET_MB / chunkMB;
+
+let written = 0;
+
+function writeNext() {
+  let ok = true;
+  while (written < totalChunks && ok) {
+    written++;
+    const progress = ((written / totalChunks) * 100).toFixed(0);
+    process.stdout.write(`\r  Writing... ${progress}% (${written * chunkMB} MB / ${TARGET_MB} MB)`);
+    ok = stream.write(chunk);
+  }
+
+  if (written < totalChunks) {
+    stream.once('drain', writeNext); // backpressure handling
+  } else {
+    stream.end();
+  }
+}
+
+stream.on('finish', () => {
+  console.log(`\n\n✅ Done! File created: ${OUTPUT_FILE}`);
+  const stats = fs.statSync(OUTPUT_FILE);
+  console.log(`   Size: ${(stats.size / 1024 / 1024).toFixed(1)} MB`);
+  console.log('\nNow run:');
+  console.log('  node crash-readfile.js      ← will crash or eat RAM');
+  console.log('  node safe-stream.js         ← stays lean');
+});
+
+stream.on('error', (err) => {
+  console.error('Error generating file:', err.message);
+});
+
+function main() {
+  writeNext();
+}
+main()
+
+Testing with fs.readFile
+crash-readFile.js
+// crash-readfile.js
+// ❌ DANGEROUS: Loads the ENTIRE file into memory at once.
+// Will crash with "JavaScript heap out of memory" on large files.
+
+const fs = require('node:fs');
+const path = require('node:path');
+const v8 = require('node:v8');
+
+const FILE = path.join(__dirname, 'assets/largefile.txt');
+
+// --- Memory helpers ---
+function getMB(bytes) {
+  return (bytes / 1024 / 1024).toFixed(1);
+}
+
+function printMemory(label) {
+  const mem = process.memoryUsage();
+  const heap = v8.getHeapStatistics();
+  console.log(`\n📊 [${label}]`);
+  console.log(`   RSS (total process):     ${getMB(mem.rss)} MB`);
+  console.log(`   Heap used:               ${getMB(mem.heapUsed)} MB`);
+  console.log(`   Heap total:              ${getMB(mem.heapTotal)} MB`);
+  console.log(`   Heap size limit (v8):    ${getMB(heap.heap_size_limit)} MB`);
+  console.log(`   External (Buffers):      ${getMB(mem.external)} MB`);
+}
+
+// --- Check file exists ---
+if (!fs.existsSync(FILE)) {
+  console.error('❌ largefile.txt not found. Run: node generate-file.js first');
+  process.exit(1);
+}
+
+const fileSizeMB = fs.statSync(FILE).size / 1024 / 1024;
+const heapLimitMB = v8.getHeapStatistics().heap_size_limit / 1024 / 1024;
+
+console.log('======================================');
+console.log('  ❌  fs.readFile — Dangerous Approach');
+console.log('======================================\n');
+console.log(`File size:       ${fileSizeMB.toFixed(1)} MB`);
+console.log(`v8 Heap limit:   ${heapLimitMB.toFixed(1)} MB`);
+
+if (fileSizeMB > heapLimitMB * 0.8) {
+  console.log(`\n⚠️  WARNING: File (${fileSizeMB.toFixed(0)} MB) is close to or exceeds`);
+  console.log(`   the v8 heap limit (${heapLimitMB.toFixed(0)} MB).`);
+  console.log('   This process is very likely to crash.\n');
+} else {
+  console.log(`\n⚠️  File fits in heap but will consume ${fileSizeMB.toFixed(0)} MB of RAM at once.\n`);
+}
+
+printMemory('BEFORE readFile');
+
+console.log('\n⏳ Calling fs.readFile — allocating entire file as one Buffer...');
+console.log('   (Event loop is now occupied, no other work can run)\n');
+
+const startTime = Date.now();
+
+// ❌ THIS IS THE PROBLEM:
+// fs.readFile reads the entire file into a single Buffer/string in memory.
+// Node must allocate ONE contiguous block of RAM equal to the file size.
+// If file size > v8 heap limit (~1.4 GB by default), this CRASHES the process.
+fs.readFile(FILE, 'utf8', (err, data) => {
+  if (err) {
+    // This is what you see in the terminal when it OOMs:
+    // FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory
+    console.error('\n💥 CRASH / ERROR during readFile:');
+    console.error(`   ${err.message}\n`);
+
+    if (err.code === 'ERR_STRING_TOO_LONG') {
+      console.error('   The file is too large to fit in a JS string.');
+      console.error('   Max string size in v8 is ~512 MB.\n');
+    }
+
+    console.log('Fix: Use fs.createReadStream instead (see safe-stream.js)');
+    process.exit(1);
+  }
+
+  const elapsed = Date.now() - startTime;
+
+  printMemory('AFTER readFile — entire file now in RAM');
+
+  console.log(`\n✅ readFile completed in ${elapsed}ms`);
+  console.log(`   data.length = ${(data.length / 1024 / 1024).toFixed(1)} MB held in memory`);
+  console.log('\n⚠️  ALL of that RAM is occupied until GC runs.');
+  console.log('   Meanwhile, no other requests could be served.\n');
+});
+
+// Demonstrate the event loop is blocked
+// This interval CANNOT fire while readFile is consuming memory in the callback
+let ticks = 0;
+const ticker = setInterval(() => {
+  ticks++;
+  process.stdout.write(`\r   [event loop] ticked ${ticks} times while waiting...`);
+}, 100);
+
+// The 'close' event fires after everything is done
+process.on('exit', () => clearInterval(ticker));
+
+Streaming:
+safe-stream.js
+// safe-stream.js
+// ✅ SAFE: Processes the file in small chunks.
+// Memory stays flat (~64 KB) regardless of file size.
+
+const fs = require('node:fs');
+const path = require('node:path');
+const v8 = require('node:v8');
+
+const FILE = path.join(__dirname, 'assets/largefile.txt');
+const CHUNK_SIZE = 64 * 1024; // 64 KB — only this much lives in RAM at a time
+
+// --- Memory helpers ---
+function getMB(bytes) {
+  return (bytes / 1024 / 1024).toFixed(2);
+}
+
+function getKB(bytes) {
+  return (bytes / 1024).toFixed(1);
+}
+
+function printMemory(label) {
+  const mem = process.memoryUsage();
+  console.log(`\n📊 [${label}]`);
+  console.log(`   RSS:       ${getMB(mem.rss)} MB`);
+  console.log(`   Heap used: ${getMB(mem.heapUsed)} MB`);
+  console.log(`   External:  ${getMB(mem.external)} MB  ← Buffer memory (stays small!)`);
+}
+
+// --- Check file exists ---
+if (!fs.existsSync(FILE)) {
+  console.error('❌ largefile.txt not found. Run: node generate-file.js first');
+  process.exit(1);
+}
+
+const fileSizeMB = fs.statSync(FILE).size / 1024 / 1024;
+const heapLimitMB = v8.getHeapStatistics().heap_size_limit / 1024 / 1024;
+
+console.log('======================================');
+console.log('  ✅  fs.createReadStream — Safe Approach');
+console.log('======================================\n');
+console.log(`File size:         ${fileSizeMB.toFixed(1)} MB`);
+console.log(`v8 Heap limit:     ${heapLimitMB.toFixed(1)} MB`);
+console.log(`Chunk size:        ${getKB(CHUNK_SIZE)} KB`);
+console.log(`Max RAM at once:   ~${getKB(CHUNK_SIZE * 3)} KB  (not ${fileSizeMB.toFixed(0)} MB!)`);
+
+printMemory('BEFORE streaming');
+
+console.log('\n⏳ Starting stream...\n');
+
+const startTime = Date.now();
+let chunkCount = 0;
+let totalBytesRead = 0;
+let peakHeap = 0;
+
+// ✅ THIS IS THE FIX:
+// createReadStream reads one chunk at a time (default 64 KB).
+// Node emits a 'data' event for each chunk, processes it, then moves on.
+// The previous chunk is garbage collected before the next one arrives.
+const stream = fs.createReadStream(FILE, {
+  highWaterMark: CHUNK_SIZE, // how big each chunk is
+  encoding: 'utf8',
+});
+
+// Fires for every chunk — memory stays flat
+stream.on('data', (chunk) => {
+  chunkCount++;
+  totalBytesRead += chunk.length;
+
+  // Track peak heap
+  const heapNow = process.memoryUsage().heapUsed;
+  if (heapNow > peakHeap) peakHeap = heapNow;
+
+  // Log progress every 500 chunks
+  if (chunkCount % 500 === 0) {
+    const pct = ((totalBytesRead / (fileSizeMB * 1024 * 1024)) * 100).toFixed(1);
+    const mem = process.memoryUsage();
+    process.stdout.write(
+      `\r   chunk #${chunkCount.toLocaleString()} | ` +
+      `${(totalBytesRead / 1024 / 1024).toFixed(1)} MB read (${pct}%) | ` +
+      `heap: ${getMB(mem.heapUsed)} MB`
+    );
+  }
+  // --- Do your actual work here per chunk ---
+  // e.g. parse lines, pipe to another stream, write to DB, etc.
+  // exampleWork(chunk);
+});
+
+// Fires once — all chunks processed
+stream.on('end', () => {
+  const elapsed = Date.now() - startTime;
+  console.log('\n');
+  printMemory('AFTER streaming — heap barely moved');
+  console.log(`\n✅ Stream complete!`);
+  console.log(`   Total bytes read:  ${(totalBytesRead / 1024 / 1024).toFixed(1)} MB`);
+  console.log(`   Total chunks:      ${chunkCount.toLocaleString()}`);
+  console.log(`   Peak heap:         ${getMB(peakHeap)} MB  (vs ${fileSizeMB.toFixed(0)} MB for readFile)`);
+  console.log(`   Time elapsed:      ${elapsed}ms`);
+  console.log('\n🎯 Key insight: peak heap was only ~' + getMB(peakHeap) + ' MB');
+  console.log(`   regardless of the ${fileSizeMB.toFixed(0)} MB file size.`);
+});
+
+stream.on('error', (err) => {
+  console.error('\n❌ Stream error:', err.message);
+});
+
+// Demonstrate event loop stays FREE during streaming
+let ticks = 0;
+const ticker = setInterval(() => {
+  ticks++;
+}, 100);
+
+stream.on('end', () => {
+  clearInterval(ticker);
+  console.log(`\n   Event loop ticked ${ticks} times during the read.`);
+  console.log('   Other requests could have been served concurrently. ✓');
+});
+
+
+
+				
