@@ -1,0 +1,244 @@
+										Node Platform apis
+..........................................................................................................................................................................................................................................
+Node Modules - common js:
+
+Types of modules:
+
+1.Custom module
+  built by us
+2.built in modules
+   provided by node.js  
+3.provided by third party/community
+  libs, frameworks
+
+Built in Modules:
+.................
+File System io
+Networking
+os
+etc...
+https://nodejs.org/docs/latest/api/os.html
+
+..................................................................................
+			1.os 
+
+The os module provides operating system-related utility methods and properties. It can be accessed using:
+const os = require('node:os')
+
+function main() {
+    console.log('Platform : ', os.platform())
+    console.log('Arch : ', os.arch())
+    console.log('Type : ', os.type())
+    console.log('Kernal Version : ', os.version())
+    console.log('Machine Type : ', os.machine())
+
+    //memory 
+    console.log('Total Memory : ', (os.totalmem() / 1024 ** 3).toFixed(2), 'GB')
+
+    //CPU
+    const cpus = os.cpus()
+    console.log(`Cores : ${cpus.length}`)
+    console.log(`Model : ${cpus[0].model}`)
+    console.log(`Speed : ${cpus[0].speed} MHz`)
+
+    //
+
+
+}
+main()
+....................................................................................
+./ vs ''
+.........
+
+ require('./services/TODOService');
+  ->here you can see ./
+  ./ -current dir
+
+ require('node:os'); => 
+  -here no ./ 
+
+Why?
+
+Note : if you are java dev, you know the class path , how it works?
+
+require('node:os');
+
+Node internally uses a search algorithm, node always looks the folder called
+ "node_modules" in the current project, if not , then it searches, the node in built 
+installation folder---c:/pf/node/node_modules--if it finds it will pick up from there else it will throw error.
+
+require('./services/TODOService');
+   it will lookup in the current dir or sub dirs only.
+
+internal/modules/cjs/loader.js:800
+    throw err;
+    ^
+
+Error: Cannot find module 'osxx'
+Require stack:
+- C:\session\ibm\feb\nodems\mynodeapps\src\index.js
+[90m    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:797:15)[39m
+[90m    at Function.Module._load (internal/modules/cjs/loader.js:690:27)[39m
+[90m    at Module.require (internal/modules/cjs/loader.js:852:19)[39m
+[90m    at require (internal/modules/cjs/helpers.js:74:18)[39m
+    at Object.<anonymous> (C:\session\ibm\feb\nodems\mynodeapps\src\index.js:1:32)
+[90m    at Module._compile (internal/modules/cjs/loader.js:959:30)[39m
+[90m    at Object.Module._extensions..js (internal/modules/cjs/loader.js:995:10)[39m
+[90m    at Module.load (internal/modules/cjs/loader.js:815:32)[39m
+[90m    at Function.Module._load (internal/modules/cjs/loader.js:727:14)[39m
+[90m    at Function.Module.runMain (internal/modules/cjs/loader.js:1047:10)[39m {
+  code: [32m'MODULE_NOT_FOUND'[39m,
+  requireStack: [ [32m'C:\\session\\ibm\\feb\\nodems\\mynodeapps\\src\\index.js'[39m ]
+}
+.........................................................................................................................................................................................................................................
+			  										Events
+***********************************************************************************************************************************************************
+The Node.js events module is the backbone of Node async event-driven architecture, Most core node modules like http,fs,stream are built on top of it.
+
+It provides an implementation of the "EventEmitter Class" - which is central to Node's Event Driven Architecture.
+Most of the IO implementation inherits EventEmitter as Base class, so that io can be event driven.
+
+methods:
+1.on(nameoftheevent,listener) -  Add listener to the object
+2.emit('nameoftheevent',[...args]) - trigger event
+3.once(event,listener) - listen only once
+4.off(event,listener) -remove specific listener
+5.removeAllListener([events]) - removes all events
+
+simple basic use case:
+const { EventEmitter } = require('node:events')
+
+function main() {
+    //create emitter object
+    const emitter = new EventEmitter()
+    //Register event listener
+    emitter.on('greet', (name) => {
+        console.log(`Hello ${name}`)
+    })
+
+    //emit event
+    emitter.emit('greet','Subramanian Murugan')
+
+}
+main()
+
+once vs on:
+const { EventEmitter } = require('node:events')
+
+function main() {
+    //create emitter object
+    const emitter = new EventEmitter()
+    //Register event listener
+    emitter.on('connect', (status) => {
+        console.log(`${status}`)
+    })
+    emitter.once('disconnect', (status) => {
+        console.log(`${status}`)
+    })
+    //emit event
+    emitter.emit('connect', 'Connecting...')
+    emitter.emit('connect', 'Connecting...')
+    emitter.emit('connect', 'Connecting...')
+
+    emitter.emit('disconnect', 'Disconnecting...')
+    emitter.emit('disconnect', 'Disconnecting...')
+
+}
+main()
+
+Extending Event Emitter and write realworld code
+const { EventEmitter } = require('node:events')
+
+class Database extends EventEmitter {
+    constructor() {
+        super()
+        //register all database related events
+        this.on('connect', ({ url }) => {
+            console.log(`Connected to ${url}`)
+        })
+        this.on('data', ({ result }) => {
+            console.log('Got Result',result)
+        })
+        this.on('error', ({ err }) => {
+            console.log(`Got Err ${err}`)
+        })
+    }
+    //biz methods
+    connect(url) {
+        //simulate async connection using timer
+        setTimeout(() => {
+            this.emit('connect', { url })
+        }, 500)
+    }
+
+    query(sql) {
+        try {
+            setTimeout(() => {
+                const result = [{ id: 1, name: 'a' }]
+                this.emit('data', { result })
+            }, 800)
+        }
+        catch (err) {
+            this.emit('error', err)
+        }
+    }
+}
+
+function main() {
+    const db = new Database()
+    db.connect('postgress:localhost/mydb')
+    db.query('Select *from users')
+}
+main()
+ 
+const EventEmitter = require('node:events')
+
+class Logger extends EventEmitter {
+
+    constructor() {
+        super()
+        //register events
+        this.on('log', (data) => {
+            console.log(`[Console] ${data.timestamp} - ${data.message}`)
+        })
+        //Listener 2: fake file loger
+        this.on('log', (data) => {
+            console.log(`[File] Writing to file ${JSON.stringify(data)}`)
+        })
+    }
+    //emit log
+    log(message) {
+        //Emit 'Log' Event with message and Timestamp
+        this.emit('log', { message, timestamp: new Date().toISOString() })
+    }
+}
+class UserService {
+    logger;
+    constructor(logger) {
+        this.logger = logger
+    }
+    save(data) {
+        console.log(data)
+        this.logger.log('User has been saved')
+    }
+}
+function main() {
+    //create logger 
+    // let logger = new Logger()
+    // logger.log('User saved!')
+    // logger.log('User updated!')
+    let user = new UserService(new Logger())
+    user.save({ id: 1, name: 'Subramaian' })
+}
+main()
+
+
+
+
+
+
+
+
+
+
+
