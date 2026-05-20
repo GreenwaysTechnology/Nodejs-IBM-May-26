@@ -1,0 +1,547 @@
+		   								Http Programming in Node
+.......................................................................................................................................................................................................................................
+Node was created to build non blocking web server and web applications.
+Node provides single event loop thread which handles lot of concurrent http requests.
+Node offers high level http wrapper apis to talk to os apis.
+Node offers http as object.
+
+HTTP Objects
+
+1.Agent -  http.Agent
+  For handling connections between and server
+
+2.ClientRequest - http.clientRequest
+  For creating http clients
+
+3.Server - http.Server
+  For creating web servers, we can create app and deploy on top of server.
+  
+4.ServerResponse - http.ServerResponse
+  ServerResponse is outputstream of "http socket"
+
+5.IncomingMessage -http.IncomingMessage
+    The payload which is sent by client -  Message
+
+6.OutgoingMessage -http.OutgoingMessage
+    The data which is sent by server - Message
+
+7.Global Methods of http
+   1.createServer
+    factory method to create http server instance.
+
+HTTP events:
+ 
+ There are three types of events
+
+1.HTTP Request events
+  Which are triggered whenever client request is received by server
+  request.on('nameoftheevent',listner)
+
+2.Http Response events
+   Which are triggered whenever server response is sent by server
+  response.on('nameoftheevent',listner)
+
+3.Server Events
+   Server events are triggered during server startup,connection,handshake,request
+   server.on('nameoftheevent',listner)
+common events:
+ data
+ error
+ close
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+Simple Web Server:
+const http = require('node:http')
+
+const PORT = 3000 
+//create server
+const server = http.createServer((req, res) => {
+    //process client request and send response
+    res.write('Hello')
+    res.end()
+})
+
+//start the server
+server.listen(PORT,()=>{
+    console.log(`Http Server is listening at ${PORT}`)
+})
+**************************************************
+Attaching Server Events
+
+const http = require('node:http')
+
+const PORT = 3000
+//create server
+const server = http.createServer((req, res) => {
+    //process client request and send response
+    res.write('Hello')
+    res.end()
+})
+
+//start the server
+server.listen(PORT, () => {
+    console.log(`Http Server is listening at ${PORT}`)
+})
+
+//attach server event: request event
+server.on('request', (req, res) => {
+    console.log('Request Recived on', `[${new Date().toISOString()}]`, "URL is", req.url, "method ", req.method)
+})
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+								  Routing Pattern
+
+const http = require('node:http')
+
+const PORT = 3000
+
+//create server
+const server = http.createServer((req, res) => {
+    //url  - '/'
+    if (req.url === '/') {
+        res.end('Home Page')
+    } else if (req.url === '/about') {
+        res.end('About Page')
+    } else if (req.url === '/services') {
+        res.end('Service Page')
+    } else {
+        res.end('404 Not Found Page')
+    }
+})
+//start the server
+server.listen(PORT, () => {
+    console.log('Server running at http://localhost:3000')
+})
+
+//server listener
+server.on('request', (req, res) => {
+    console.log('Request Recived on', `[${new Date().toISOString()}]`, "URL is", req.url, "method ", req.method)
+
+})
+
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										JSON response
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+const http = require('node:http')
+
+const PORT = 3000
+//create server
+const server = http.createServer((req, res) => {
+    //process client request and send response
+    const data = [{ id: 1, name: 'Subramanian'},{ id: 2, name: 'Murugan' }]
+    res.write(data)
+    res.end()
+})
+
+//start the server
+server.listen(PORT, () => {
+    console.log(`Http Server is listening at ${PORT}`)
+})
+
+//attach server event: request event
+server.on('request', (req, res) => {
+    console.log('Request Recived on', `[${new Date().toISOString()}]`, "URL is", req.url, "method ", req.method)
+
+})
+
+Http Server is listening at 3000
+node:_http_outgoing:949
+    throw new ERR_INVALID_ARG_TYPE(
+    ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The "chunk" argument must be of type string or an instance of Buffer or Uint8Array. Received an instance of Array
+    at write_ (node:_http_outgoing:949:11)
+    at ServerResponse.write (node:_http_outgoing:904:15)
+    at Server.<anonymous> (G:\IBM\2025\July\Node\httpapp\src\index.js:8:9)
+    at Server.emit (node:events:536:35)
+    at parserOnIncoming (node:_http_server:1153:12)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:117:17) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v22.13.0
+
+Here we are trying to send array object, we cant , then we have to convert into string (json)
+
+const http = require('http')
+
+const PORT = 3000
+
+//create server and deploy app
+const server = http.createServer((req, res) => {
+    const users = [{
+        id: 1,
+        name: 'admin'
+    }, {
+        id: 2,
+        name: 'guest'
+    }]
+    const usersJson = JSON.stringify(users)
+    res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Connection': 'keep-alive',
+        'Keep-Alive': 'timeout=10'
+    });
+    res.end(usersJson)
+})
+//increase server timeout
+server.keepAliveTimeout = 10000 //10 secs
+//start server
+server.listen(PORT, () => {
+    console.log(`Http Server is listening at ${PORT}`)
+})
+//server events
+server.on('request', (req, res) => {
+    console.log('Request Recived on', `[${new Date().toISOString()}]`, "URL is", req.url, "method ", req.method)
+})
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+								  Modularization 
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Controller  -  Web listener
+Services  -    Hold Biz logic
+
+Controller:
+const http = require('node:http')
+const todoService = require('./services/todo.service')
+
+const PORT = 3000
+const server = http.createServer((req, res) => {
+    const jsonData = JSON.stringify(todoService.findAll())
+    res.writeHead(200, {
+        'Content-Type': 'application/json',
+    });
+    res.write(jsonData)
+    res.end()
+})
+
+//start the server
+server.listen(PORT, () => {
+    console.log(`Http Server is listening at ${PORT}`)
+})
+
+//attach server event: request event
+server.on('request', (req, res) => {
+    console.log('Request Recived on', `[${new Date().toISOString()}]`, "URL is", req.url, "method ", req.method)
+
+})
+
+Service Layer:
+const TODOS = require('../mock-data/todos')
+
+class TodoService {
+
+    findAll() {
+        return TODOS
+    }
+}
+module.exports = new TodoService()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+							Async apis and Modularization -  callbacks, promises
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Callbacks:
+const TODOS = require('../mock-data/todos')
+
+class TodoService {
+
+    //async callback
+    findAll(resolve, reject) {
+        if (TODOS) {
+            setTimeout(resolve, 1000, TODOS)
+        } else {
+            setTimeout(reject, 1000, { message: 'Records Not Found' })
+        }
+    }
+}
+module.exports = new TodoService()
+
+const http = require('node:http')
+const { findAll } = require('./services/todo.service')
+
+const PORT = 3000
+const server = http.createServer((req, res) => {
+    findAll(todos => {
+        res.writeHead(200, {
+            'Content-Type': 'application/json',
+        });
+        const jsonData = JSON.stringify(todos)
+        res.write(jsonData)
+        res.end()
+    }, err => {
+        res.writeHead(500, {
+            'Content-Type': 'application/json',
+        });
+        res.write({ err: err })
+        res.end()
+    })
+})
+
+//start the server
+server.listen(PORT, () => {
+    console.log(`Http Server is listening at ${PORT}`)
+})
+
+//attach server event: request event
+server.on('request', (req, res) => {
+    console.log('Request Recived on', `[${new Date().toISOString()}]`, "URL is", req.url, "method ", req.method)
+
+})
+
+Promise Based:
+..........................
+const TODOS = require('../mock-data/todos')
+// const TODOS=null
+class TodoService {
+
+    //async callback
+    findAll() {
+        return new Promise((resolve, reject) => {
+            if (TODOS) {
+                setTimeout(resolve, 1000, TODOS)
+            } else {
+                setTimeout(reject, 1000, { message: 'Records Not Found' })
+            }
+        })
+    }
+}
+module.exports = new TodoService()
+
+Promise with Then and Catch:
+const http = require('node:http')
+const { findAll } = require('./services/todo.service')
+
+const PORT = 3000
+const server = http.createServer((req, res) => {
+
+    findAll().then(todos => {
+        res.writeHead(200, {
+            'Content-Type': 'application/json',
+        });
+        const jsonData = JSON.stringify(todos)
+        res.write(jsonData)
+        res.end()
+    }).catch(err => {
+        res.writeHead(500, {
+            'Content-Type': 'application/json',
+        });
+        res.write({ err: err })
+        res.end()
+    })
+
+})
+
+//start the server
+server.listen(PORT, () => {
+    console.log(`Http Server is listening at ${PORT}`)
+})
+
+//attach server event: request event
+server.on('request', (req, res) => {
+    console.log('Request Recived on', `[${new Date().toISOString()}]`, "URL is", req.url, "method ", req.method)
+
+})
+
+Promise with async and await:
+const http = require('node:http')
+const { findAll } = require('./services/todo.service');
+
+const PORT = 3000
+const server = http.createServer(async (req, res) => {
+
+    try {
+        res.writeHead(200, {
+            'Content-Type': 'application/json',
+        });
+        const todos = await findAll()
+        const jsonData = JSON.stringify(todos)
+        res.write(jsonData)
+        res.end()
+    }
+    catch (err) {
+        res.writeHead(500, {
+            'Content-Type': 'application/json',
+        });
+        res.write({ err: err })
+        res.end()
+    }
+
+
+})
+
+//start the server
+server.listen(PORT, () => {
+    console.log(`Http Server is listening at ${PORT}`)
+})
+
+//attach server event: request event
+server.on('request', (req, res) => {
+    console.log('Request Recived on', `[${new Date().toISOString()}]`, "URL is", req.url, "method ", req.method)
+
+})
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+											Payload
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+const http = require('node:http')
+
+const PORT = 3000
+//create server
+const server = http.createServer((req, res) => {
+    //how to read input
+    let data = ''
+    req.on('data', (chunk) => {
+        data += chunk
+    })
+    req.on('end', () => {
+        console.log(data)
+        res.end('Saved')
+    })
+})
+
+//start the server
+server.listen(PORT, () => {
+    console.log(`Http Server is listening at ${PORT}`)
+})
+
+//attach server event: request event
+server.on('request', (req, res) => {
+    console.log('Request Recived on', `[${new Date().toISOString()}]`, "URL is", req.url, "method ", req.method)
+
+})
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									CURD - HTTP module
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+const http = require('node:http')
+
+const PORT = 3000
+//create server
+const server = http.createServer((req, res) => {
+    const { method, url } = req
+    if (method === 'GET') {
+        res.end('GET')
+    } else if (method === 'POST') {
+        res.end('POST')
+    } else if (method === 'PUT') {
+        res.end('PUT')
+    } else if (method === 'DELETE') {
+        console.log('delete is called')
+        res.end('DELETE')
+    } else {
+        res.end('NOT Supported')
+    }
+
+})
+
+//start the server
+server.listen(PORT, () => {
+    console.log(`Http Server is listening at ${PORT}`)
+})
+
+//attach server event: request event
+server.on('request', (req, res) => {
+    console.log('Request Recived on', `[${new Date().toISOString()}]`, "URL is", req.url, "method ", req.method)
+
+})
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									HTTP, With FS Module
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+const http = require('node:http')
+const fs = require('node:fs')
+const path = require('node:path')
+
+const PORT = 3000
+
+//create server
+const server = http.createServer((req, res) => {
+    const filePath = path.join(__dirname, '../index.html')
+    fs.readFile(filePath, null, (err, data) => {
+        if (err) {
+            console.log(err)
+            res.writeHead(500)
+            return res.end('Error Loading File...')
+        }
+        res.writeHead(200, { 'Content-Type': 'text/html' })
+        res.end(data)
+    })
+})
+//start the server
+server.listen(PORT, () => {
+    console.log('Server running at http://localhost:3000')
+})})
+
+Streaming with files:
+const http = require('node:http')
+const fs = require('node:fs')
+const path = require('node:path')
+
+const PORT = 3000
+
+//create server
+const server = http.createServer((req, res) => {
+    const filePath = path.join(__dirname, '../index.html')
+    fs.access(filePath, fs.constants.F_OK, (err) => {
+        if (err) {
+            res.writeHead(404, { 'Content-Type': 'text/plain' })
+            return res.end('The Requested file not found')
+        }
+        res.writeHead(200, { 'Content-Type': 'text/html' })
+        //create stream
+        const readStream = fs.createReadStream(filePath)
+        //pipe
+        readStream.pipe(res)
+
+        readStream.on('error', (streamErr) => {
+            console.log('Stream Error', streamErr)
+            res.end('Streaming Error')
+        })
+
+    })
+
+})
+//start the server
+server.listen(PORT, () => {
+    console.log('Server running at http://localhost:3000')
+})
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									   Building RestFull web services
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+1.Resources
+   Customer, Product, Item, Payment
+
+2.API
+   findAll,findBYId,update,Remove,filter
+
+3.URL 
+   Resources and apis must be identified by URL
+
+4.APIs are mapped against HTTP verbs
+  Read - GET
+  Save  -POST
+  update - PUT
+  remove -  DELETE
+
+Each Resource is identified by unique url
+
+  /api/customer
+  /api/products
+
+Each Resource has collection of apis and which mapped against HTTP verbs
+
+ findAll - GET
+
+Having core node.js http module we cant build production ready webservices with minimum code, we need to write plenty of 										boiler plate code.
+
+					Node.js team in the beginning started working on an abstraction called "framework"
+			   							 "Express.js"
+
+
+
+
+
+
+
+
+
+
+
