@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>CORS Demo</h1>
+    <script>
+        async function getCustomer() {
+            const res = await fetch('http://localhost:3000/api/customers/1')
+            const result = await res.json()
+            console.log(result)
+        }
+        getCustomer()
+        async function postData(url, data) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST', // Specify the method
+                    headers: {
+                        'Content-Type': 'application/json' // Inform the server about the data format
+                    },
+                    body: JSON.stringify(data) // Convert the JavaScript object to a JSON string
+                });
+
+                // Check if the request was successful (status in the 200-299 range)
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const responseData = await response.json(); // Parse the response body as JSON
+                console.log('Success:', responseData);
+                return responseData;
+
+            } catch (error) {
+                console.error('Error:', error); // Handle network errors or HTTP errors
+            }
+        }
+        postData('http://localhost:3000/api/customers', { message: 'submitted' })
+    </script>
+</body>
+
+</html>

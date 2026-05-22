@@ -833,3 +833,402 @@ app.get('/api/greet', chains, (req, res) => {
 app.listen(3000, () => {
     console.log('Server running on port 3000')
 })
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										 Third party Middlewares
+
+Built in middleware or third party middlewares
+Middlewares are supplied as part of the express team, open source community.
+
+Common Middlewares From Express Team:
+
+body-parser		Parse HTTP request body.
+compression		Compress HTTP responses.
+connect-rid		Generate unique request ID.
+cookie-parser		Parse cookie header and populate req.cookies. See also cookies.
+cookie-session	Establish cookie-based sessions.
+cors				Enable cross-origin resource sharing (CORS) with various options.
+errorhandler		Development error-handling/debugging.
+method-override	Override HTTP methods using header.
+morgan			HTTP request logger.
+multer			Handle multi-part form data.
+response-time		Record HTTP response time.
+serve-favicon		Serve a favicon.
+serve-index		Serve directory listing for a given path.
+serve-static		Serve static files.
+session			Establish server-based sessions (development only).
+timeout			Set a timeout perioHTTP request processing.
+vhost			Create virtual domains.
+
+Every middleware is available as npm dependency.
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										bodyParser Middleware
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+bodyParser middleware parses incoming payload(json/formdata), converts into "JavaScript Object"
+
+bodyParser can parse different types of incoming data
+
+JSON body parser - into js object
+Raw body parser - into js object
+Text body parser - into js object
+URL-encoded form body parser - into js object
+
+Steps:
+
+1.install middleware
+npm install body-parser
+
+2.configuration as part of application object
+const bodyParser = require('body-parser')
+app.use(bodyParser.urlencoded())
+// parse application/json
+app.use(bodyParser.json())
+
+Use case:You have create products api 
+findAllproducts
+saveProducts
+findbyid
+updateProduct
+removeProduct
+filterProductByCategory
+
+Use array as data store
+Have error Handler too...
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										CORS - Cross Origin Resource sharing
+.........................................................................................................................................................................................................................................
+
+
+What is CORS?
+ Internet browsers usually block access to undefined websites from your services and apis.
+ Implementing this module enable your server to share its resources solely with clients who reside in the same domain as yours.
+
+ CORS an HTTP header based mechanism implemented by browsers, enables a server or api to specific any origins
+
+Implementation:
+Step 1:
+npm install cors
+
+Step 2:
+activate cors in app.js via middleware
+
+const cors = require('cors')
+
+app.use(cors()) - enabled for all routes
+
+Enabled for particular route:
+
+app.get('/products/:id', cors(), function (req, res, next) {
+  res.json({msg: 'This is CORS-enabled for a Single Route'})
+})
+
+Note:
+ HTTP methods,get,post,delete,update syntax
+ 
+  app.get('url',requestlistener)
+
+  app.get('url',middleware,requestlistener)
+
+Default CORS Configuration values:
+{
+  "origin": "*",
+  "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+  "preflightContinue": false,
+  "optionsSuccessStatus": 204
+}
+
+eg
+const express = require('express')
+const cors = require('cors')
+
+const app = express()
+const PORT = 3000
+
+//this means any body from outside can access our resources
+// app.use(cors())
+
+// const corsOptions = {
+//     origin: 'http://www.abc.com'
+// }
+//allow only from this url.
+// const corsOptions = {
+//     origin: 'http://127.0.0.1:5500'
+// }
+// app.use(cors(corsOptions))
+
+//white list - many origins
+const whiteList = [
+    'http://127.0.0.1:5500',
+    'http://localhost:8080',
+    'http://example.com',
+    'http://jsbin.com'
+]
+app.use(cors({
+    // methods: ['GET'],
+    origin: (origin, callback) => {
+        //allow requests with no origin(mobile,apps,curl,postman)
+        if (!origin) return callback(null, true);
+        if (whiteList.includes(origin)) {
+            callback(null, true) // allowed
+        } else {
+            callback(new Error('CorsBlocked: ${origin} not allowed'))
+        }
+    },
+}))
+
+
+app.get('/api/customers/:id', (req, res, next) => {
+    res.json({ msg: 'cors enabled for only this particular' })
+})
+
+app.post('/api/customers', (req, res) => {
+    res.status(201).json({ message: 'post' })
+})
+
+
+const server = app.listen(PORT, () => {
+    console.log(server.address())
+    console.log(`Server running on port ${server.address().port} `)
+})
+
+
+Testing:
+create index.html
+  run this file in vs code with "live server"
+
+How to install live server?
+  live server is extensions that should be installed first.
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        async function getCustomer() {
+            const res = await fetch('http://localhost:3000/api/customers/1')
+            const result = await res.json()
+            console.log(result)
+        }
+        getCustomer()
+        async function postData(url, data) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST', // Specify the method
+                    headers: {
+                        'Content-Type': 'application/json' // Inform the server about the data format
+                    },
+                    body: JSON.stringify(data) // Convert the JavaScript object to a JSON string
+                });
+
+                // Check if the request was successful (status in the 200-299 range)
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const responseData = await response.json(); // Parse the response body as JSON
+                console.log('Success:', responseData);
+                return responseData;
+
+            } catch (error) {
+                console.error('Error:', error); // Handle network errors or HTTP errors
+            }
+        }
+        postData('http://localhost:3000/api/customers', { message: 'submitted' })
+    </script>
+</body>
+
+</html>right click on this file and try to run , from there you can send request.
+
+
+In the browser console.
+content_script_bundle.js:1 Attempting initialization Mon Jul 15 2024 20:48:41 GMT+0530 (India Standard Time)
+index.html:1 Access to fetch at 'http://localhost:3001/api/customers/1' from origin 'http://127.0.0.1:5500' has been blocked by CORS policy: The 'Access-Control-Allow-Origin' header has a value 'http://www.abce.com' that is not equal to the supplied origin. Have the server send the header with a valid value, or, if an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.Understand this error
+index.html:13 
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										 Logger
+.................................................................................................................................................................................................................................
+
+In Express, we have many logger implementation ...
+
+Morgan:
+   HTTP request logger middleware for node.js
+
+How to use Morgan
+
+Steps:
+
+npm install morgan
+
+const express = require('express')
+const app = express()
+const fs = require('node:fs')
+const path = require('node:path')
+const morgan = require('morgan')
+
+//console log information
+// app.use(morgan('dev'))
+const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
+
+app.use(morgan('combined', { stream: accessLogStream }))
+
+app.get('/api/greet',(req,res)=>{
+    res.send('Hello')
+})
+
+//start server
+const server = app.listen(3000, () => {
+    console.log(server.address())
+    console.log(`Express is running @ ${server.address().port}`)
+})
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									express.static middleware
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+To serve static files such as HTML,CSS,js,images and fonts can be served using the built-in middleware called express.static
+
+you dont need to install any dependency.
+
+project structure 
+
+express-app
+   src
+	public
+		index.html
+     app.js
+const express = require('express')
+const fs = require('node:fs')
+const morgan = require('morgan')
+const path = require('node:path')
+
+const app = express()
+//register to serve static pages : it looks index.html automatically.
+app.use(express.static(path.join(__dirname, "public")))
+
+const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
+
+app.use(morgan('combined', { stream: accessLogStream }))
+
+
+const PORT = 3000
+
+//expose apis 
+app.get('/', (req, res) => {
+    res.send('index.html')
+})
+
+app.get('/api/greet',(req,res)=>{
+    res.send('Hello')
+})
+
+
+const server = app.listen(PORT, () => {
+    console.log(server.address())
+    console.log(`Server running on port ${server.address().port} `)
+})
+
+Error handling Middleware:
+
+📌 It must have 4 parameters:
+
+(err, req, res, next)
+
+Express knows it's for handling errors because of the 4 parameters.
+
+Rules:
+1.It must have 4 parameters - err,req,res,next
+2.It must be placed after all routers -
+	General middlewares are placed at top of the  routers
+	Exception Middlewares are place at bottom of the routers
+
+const express = require('express')
+const app = express()
+const PORT = 3000
+
+app.get('/api/user/:name', (req, res) => {
+    const name = req.params.name
+    if (name === 'admin') {
+        res.send({ message: 'Welcome to Admin' })
+    } else {
+        throw new Error('User Is not valid')
+    }
+})
+//Error Handling middleware
+
+app.use((err, req, res, next) => {
+    console.error(err.message);
+    res.status(500).json({
+        success: false,
+        message: err.message
+    });
+
+})
+
+//start server
+const server = app.listen(PORT, () => {
+    console.log(`Express server is ready! at ${server.address().port}`)
+})
+//server properties
+
+Handling 404 - Route not  found:
+.......................................................
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
+Put this before the global error middleware.
+
+Full Code:
+const express = require('express')
+const app = express()
+
+const PORT = 3000
+
+
+
+app.get('/api/user/:name', (req, res) => {
+    const name = req.params.name
+    if (name === 'admin') {
+        res.send({ message: 'Welcome to Admin' })
+    } else {
+        throw new Error('User Is not valid')
+    }
+})
+
+//404 Route not found error handler
+//this must be placed before Global error handler
+//it wont take next arg, because it terminates the request and response
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: `The route ${req.originalUrl} not Found`,
+    });
+});
+//Error Handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.message);
+
+    res.status(500).json({
+        success: false,
+        message: err.message
+    });
+})
+
+
+//start server
+const server = app.listen(PORT, () => {
+    console.log(`Express server is ready! at ${server.address().port}`)
+})
+//server properties
+

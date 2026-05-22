@@ -2,3 +2,8 @@
 [2026-05-22T05:35:55.190Z] - GET - /api/hello
 [2026-05-22T05:35:57.924Z] - GET - /api/hello
 [2026-05-22T05:36:00.587Z] - GET - /api/hello
+::1 - - [22/May/2026:07:09:05 +0000] "OPTIONS /api/customers HTTP/1.1" 404 156 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0"
+::1 - - [22/May/2026:07:09:05 +0000] "GET /api/customers/1 HTTP/1.1" 404 154 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0"
+::1 - - [22/May/2026:07:09:21 +0000] "GET /api/greet HTTP/1.1" 200 5 "-" "PostmanRuntime/7.54.0"
+::ffff:127.0.0.1 - - [22/May/2026:07:09:27 +0000] "GET /api/customers/1 HTTP/1.1" 404 154 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0"
+::ffff:127.0.0.1 - - [22/May/2026:07:09:27 +0000] "OPTIONS /api/customers HTTP/1.1" 404 156 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0"
