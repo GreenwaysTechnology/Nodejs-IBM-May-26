@@ -1,0 +1,835 @@
+.........................................................................................................................................................................................................................................
+							  Express.js - Web /Api Framework For node.js
+.......................................................................................................................................................................................................................................
+What is express?
+   Express Fast, unopinionated, minimalist web framework for Node.js
+express is built on top of http core module.
+
+What apps can be built using express?
+
+1.RESTFull WebServices
+2.Dynamic content generation apps -  spring mvc, .netmvc.   with ui
+
+
+Core features of Express:
+1.Abstraction on core http module
+2.lot of apis to send data like json api
+3.routers : to create HTTP based web services and apps quickly.
+4.middlewares : to extend core framework like - logging, database, security, templates...
+
+Types of distributed Apps:
+
+1.Monolithic App
+2.Microservices
+
+Can Express be used to build Microservices?
+ No,
+Express is just monolithic App framework
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									Express Key concepts: in express every thing object
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+Objects in express
+
+1.Application
+  We call Container object which contain other objects
+  entry and exit of an application
+  application is created by calling function
+2.Request
+3.Response
+4.Router
+
+
+1.Application object roll:
+	-Routing HTTP requests
+	-Configuring middleware
+	-Rendering HTML views
+	-Registering a template engine
+
+
+Express Project setup:
+1.You can install express dependencies in existing plain node project
+2.You can use express cli , to create project structures
+
+Steps:
+
+1.create project folder
+2.create src folder
+3.npm init
+4.install express dependency
+5.start writing code
+
+mkdir express-app
+cd express-app
+npm init
+...........................
+
+Installing express framework:
+.............................
+
+npm i express --save
+npm i nodemon --save-dev
+
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/app.js"
+  },
+.....................................................................................
+				Express- Coding
+.....................................................................................
+
+Express : HelloWorld
+
+File Name : app.js - conventional name but you can save index.js as well.
+
+//import express function
+const express = require('express')
+// console.log(express)
+
+//creating application object
+const app = express()
+
+// console.log(app)
+
+//api:
+app.get('/hello', (req, res) => {
+    //send response
+    res.end('Hello Express')
+})
+
+
+//start the server
+
+app.listen(3000, () => {
+    console.log('Express Server is Ready!')
+})
+.................................................................................
+			HTTP verbs and CURD
+....................................................................................
+
+HTTP Verbs         Operation Type
+
+GET                Read
+
+POST               Write
+
+PUT                Update
+
+DELETE          Remove
+
+URL Pattern:
+///////////
+Every Http Verbs are mapped against url
+
+/api/customers        -GET ,POST,PUT,DELETE
+/api/products          --GET ,POST,PUT,DELETE
+/api/reviews 		--GET ,POST,PUT,DELETE
+
+ 
+const express = require('express')
+
+const PORT = 3000
+const app = express()
+
+//expose apis
+//get ===HTTP GET Verb
+app.get('/', (req, res) => {
+    res.end('Hello Express')
+})
+
+//Resource:USERs
+app.get('/api/users', (req, res) => {
+    res.end('USERS GET')
+})
+app.post('/api/users', (req, res) => {
+    res.end('USERS POST')
+})
+app.put('/api/users', (req, res) => {
+    res.end('USERS PUT')
+})
+app.delete('/api/users', (req, res) => {
+    res.end('USERS DELETE')
+})
+
+//start server
+app.listen(PORT, () => {
+    console.log(`Express server is Running at ${PORT}`)
+})
+.........................................................................................................................................................................................................................................
+									PORT, getting Server Info
+.......................................................................................................................................................................................................................................
+
+const express = require('express')
+
+const PORT = 3000
+
+const app = express()
+
+//expose apis
+//get ===HTTP GET Verb
+app.get('/', (req, res) => {
+    res.end('Hello Express')
+})
+
+//Resource:USERs
+app.get('/api/users', (req, res) => {
+    res.end('USERS GET')
+})
+app.post('/api/users', (req, res) => {
+    res.end('USERS POST')
+})
+app.put('/api/users', (req, res) => {
+    res.end('USERS PUT')
+})
+app.delete('/api/users', (req, res) => {
+    res.end('USERS DELETE')
+})
+
+//start server
+const server = app.listen(PORT, () => {
+    console.log(`Express server is Running at ${server.address().port}`)
+})
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										JSON - payload
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+const express = require('express')
+const USERS = require('./mock-data/users')
+
+const PORT = 3000
+
+const app = express()
+
+//expose apis
+//get ===HTTP GET Verb
+app.get('/', (req, res) => {
+    res.end('Hello Express')
+})
+
+//Resource:USERs
+app.get('/api/users', (req, res) => {
+    res.json(USERS)
+})
+app.post('/api/users', (req, res) => {
+    res.end('USERS POST')
+})
+app.put('/api/users', (req, res) => {
+    res.end('USERS PUT')
+})
+app.delete('/api/users', (req, res) => {
+    res.end('USERS DELETE')
+})
+
+//start server
+const server = app.listen(PORT, () => {
+    console.log(`Express server is Running at ${server.address().port}`)
+})
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									Service layer, controller, promise
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+const express = require('express')
+const { findAll } = require('./services/user.service')
+
+const PORT = 3000
+const app = express()
+
+//expose apis
+//get ===HTTP GET Verb
+app.get('/', (req, res) => {
+    res.end('Hello Express')
+})
+
+//Resource:USERs
+app.get('/api/users', async (req, res) => {
+    try {
+        const users = await findAll()
+        res.json(users)
+    }
+    catch (err) {
+        console.log(err)
+    }
+})
+app.post('/api/users', (req, res) => {
+    res.end('USERS POST')
+})
+app.put('/api/users', (req, res) => {
+    res.end('USERS PUT')
+})
+app.delete('/api/users', (req, res) => {
+    res.end('USERS DELETE')
+})
+
+//start server
+const server = app.listen(PORT, () => {
+    console.log(`Express server is Running at ${server.address().port}`)
+})
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										Routers
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+src/routers/user.router.js
+const express = require('express')
+const { findAll } = require('../services/user.service')
+
+const userRouter = express.Router()
+
+userRouter.get('/', async (req, res) => {
+    try {
+        const users = await findAll()
+        res.json(users)
+    }
+    catch (err) {
+        console.log(err)
+    }
+})
+
+
+module.exports = userRouter;
+
+
+src/routers/post.router.js
+const express = require('express')
+
+const postRouter = express.Router()
+
+postRouter.get('/', async (req, res) => {
+    try {
+        res.json({message:'Post Router'})
+    }
+    catch (err) {
+        console.log(err)
+    }
+})
+
+
+module.exports = postRouter;
+
+src/routers/comments.router.js
+const express = require('express')
+
+const commentsRouter = express.Router()
+
+commentsRouter.get('/', async (req, res) => {
+    try {
+        res.json({message:'Comments Router'})
+    }
+    catch (err) {
+        console.log(err)
+    }
+})
+
+
+module.exports = commentsRouter;
+
+src/app.js
+const express = require('express')
+//const userRouter = require('./routers/user.router')
+const PORT = 3000
+const app = express()
+
+//bind Routers with application object, so that application can redirect to routers
+// app.use('/api/users',userRouter)
+app.use('/api/users', require('./routers/user.router'))
+app.use('/api/posts', require('./routers/post.router'))
+app.use('/api/comments', require('./routers/comments.router'))
+
+//expose apis
+//get ===HTTP GET Verb
+app.get('/', (req, res) => {
+    res.end('Hello Express')
+})
+
+//start server
+const server = app.listen(PORT, () => {
+    console.log(`Express server is Running at ${server.address().port}`)
+})
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+				&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+											Router Parameters and Query Strings
+const express = require('express')
+const app = express()
+// console.log(app)
+
+//expose apis 
+app.get('/', (req, res) => {
+    res.end('Home')
+})
+//users 
+app.get('/api/users', (req, res) => {
+    res.end('GET-Users')
+})
+//users by city - /api/users/address?city='xxx'&state='xxx'
+app.get('/api/users/address', (req, res) => {
+    const queryparams = req.query
+    console.log(queryparams.city)
+    res.json({ message: queryparams })
+})
+//users by id-route parameters
+app.get('/api/users/:id', (req, res) => {
+    const params = req.params
+    res.json({ message: params.id })
+})
+
+app.post('/api/users', (req, res) => {
+    res.end('POST-Users')
+})
+app.put('/api/users', (req, res) => {
+    res.end('PUT-Users')
+})
+app.delete('/api/users', (req, res) => {
+    res.end('DELETE-Users')
+})
+
+app.listen(3000, () => {
+    console.log('Server running on port 3000')
+})
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										Payload
+
+const express = require('express')
+const app = express()
+// console.log(app)
+
+app.post('/api/users', (req, res) => {
+    let data = ''
+    req.on('data', (chunk) => {
+        data += chunk
+    })
+    req.on('end', () => {
+        console.log(data)
+        //save
+        console.log(JSON.parse(data))
+        res.end('Data is Posted')
+    })
+})
+app.listen(3000, () => {
+    console.log('Server running on port 3000')
+})
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										  Express middlewares
+.......................................................................................................................................................................................................................................
+What is Middleware?
+       Middleware is JavaScript function that have access request object and response and next function in the application request response              cycle.
+ The difference between normal function which handles req and response with express , middleware takes third arg
+
+normal function
+ app.get('url',(req,res)=>{})
+
+Middleware function
+  app.get('url',(req,res,next)=>{
+       //pre and post processing
+  })
+ req and res are objects
+ next is a function
+
+The "next" function is a function in the express router which, when invoked, executes the middleware succeeding the current middleware.
+
+
+Tasks are middleware is doing:
+
+1.Execute any code
+2.Make changes to request and response object before handling real req and res cycle.
+3.Middlwares can be attached on application object and also router object
+
+Middleware Flow:
+ Request-------->[Middlware 1]--------[Middleware 2]---------[Middleware N]----routerHandler ---Response
+
+use Method
+  use method is used to registry middleware.
+
+app.use
+router.use
+
+app.use('/api/users', require('./routers/users/user.router'))
+ In this code we have registered already middleware which is called as "routerMidleware" - Router itself is middleware.
+
+How to write our own middleware? - Custom Middleware.
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Use case: Simple Middleware
+const express = require('express')
+const PORT = 3000
+const app = express()
+
+//middlewares
+app.use(function (req, res, next) {
+    console.log('Middleware')
+    //chain the middleware: move to next
+    next()
+})
+
+
+app.get('/', (req, res) => {
+    res.end('Hello Express')
+})
+
+
+//start server
+app.listen(PORT, () => {
+    console.log(`Express server is Running at ${PORT}`)
+})
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Use case :Multiple Middlewares
+const express = require('express')
+const PORT = 3000
+const app = express()
+
+//middlewares
+app.use(function (req, res, next) {
+    console.log('M1')
+    //chain the middleware: move to next
+    next()
+})
+app.use(function (req, res, next) {
+    console.log('M2')
+    //chain the middleware: move to next
+    next()
+})
+app.use(function (req, res, next) {
+    console.log('M3')
+    //chain the middleware: move to next
+    next()
+})
+
+
+app.get('/', (req, res) => {
+    res.end('Hello Express')
+})
+
+
+//start server
+app.listen(PORT, () => {
+    console.log(`Express server is Running at ${PORT}`)
+})
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Use case : Add some custom Header
+const express = require('express')
+const PORT = 3000
+const app = express()
+
+//middlewares
+app.use(function (req, res, next) {
+    //custom header
+    res.set("message", "Hello")
+    //chain the middleware: move to next
+    next()
+})
+app.use(function (req, res, next) {
+    res.set("name", "Subramanian")
+
+    console.log('M2')
+    //chain the middleware: move to next
+    next()
+})
+app.use(function (req, res, next) {
+    res.set("company", "IBM")
+
+    console.log('M3')
+    //chain the middleware: move to next
+    next()
+})
+
+
+app.get('/', (req, res) => {
+    res.end('Hello Express')
+})
+
+
+//start server
+app.listen(PORT, () => {
+    console.log(`Express server is Running at ${PORT}`)
+})
+*********************************************************************************************************************************************************
+											Middleware for specific URL
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+const express = require('express')
+const PORT = 3000
+const app = express()
+
+//url specific middleware
+app.use('/api/hello', (req, res, next) => {
+    res.set('hello', 'helloapi')
+    next()
+})
+
+app.get('/', (req, res) => {
+    res.end('Hello Express')
+})
+
+app.get('/api/hello', (req, res) => {
+    res.end('Hello-GET')
+})
+app.post('/api/hello', (req, res) => {
+    res.end('Hello-POST')
+})
+app.put('/api/hello', (req, res) => {
+    res.end('Hello-Put')
+})
+app.delete('/api/hello', (req, res) => {
+    res.end('Hello-Delete')
+})
+
+app.get('/api/hai', (req, res) => {
+    res.end('hai-GET')
+})
+//start server
+app.listen(PORT, () => {
+    console.log(`Express server is Running at ${PORT}`)
+})
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+							        URL and specific method
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+const express = require('express')
+const PORT = 3000
+const app = express()
+
+//url specific middleware
+app.get('/api/hello', (req, res, next) => {
+    res.set('hello', 'this is get method')
+    next()
+})
+
+app.get('/', (req, res) => {
+    res.end('Hello Express')
+})
+
+app.get('/api/hello', (req, res) => {
+    res.end('Hello-GET')
+})
+app.post('/api/hello', (req, res) => {
+    res.end('Hello-POST')
+})
+app.put('/api/hello', (req, res) => {
+    res.end('Hello-Put')
+})
+app.delete('/api/hello', (req, res) => {
+    res.end('Hello-Delete')
+})
+
+app.get('/api/hai', (req, res) => {
+    res.end('hai-GET')
+})
+//start server
+app.listen(PORT, () => {
+    console.log(`Express server is Running at ${PORT}`)
+})
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+								   Routers and middlewares
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+const express = require('express')
+const PORT = 3000
+const app = express()
+//router
+const userRouter = express.Router()
+app.use('/api/users', userRouter)
+
+//userRouter
+// userRouter.use(function (req, res, next) {
+//     console.log('User Router')
+//     res.set('user', 'this is user Router')
+//     next()
+// })
+// userRouter.use('/', function (req, res, next) {
+//     console.log('User Router')
+//     res.set('user', 'this is user Router')
+//     next()
+// })
+userRouter.get('/api/users', function (req, res, next) {
+    console.log('User Router')
+    res.set('user', 'this is user Router')
+    next()
+})
+userRouter.get('/', (req, res) => {
+    res.send('User router')
+})
+userRouter.get('/:id', (req, res) => {
+    res.send('User router details')
+})
+
+
+//start server
+app.listen(PORT, () => {
+    console.log(`Express server is Running at ${PORT}`)
+})
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Use case:
+I want to log every request into a file- building logger using middleware
+
+const express = require('express')
+const fs = require('node:fs')
+const path = require('node:path')
+
+const PORT = 3000
+
+//middleware function 
+function fileLoggerMiddleware(type = 'console') {
+    return function (req, res, next) {
+        const logFormat = `[${new Date().toISOString()}] - ${req.method} - ${req.url}\n`
+        if (type === 'file') {
+            fs.appendFileSync(path.join(__dirname, 'access.log'), logFormat)
+            next()
+        } else {
+            console.log(logFormat)
+            next()
+        }
+    }
+}
+
+const app = express()
+app.use(fileLoggerMiddleware('file'))
+
+app.get('/api/greet', (req, res) => {
+    res.json({ message: 'Greet' })
+})
+
+app.get('/api/hello', (req, res) => {
+    res.json({ message: 'Hello' })
+})
+
+app.listen(PORT, () => {
+    console.log(`Express server is running @ ${PORT}`)
+})&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									Types of Middlewares
+...........................................................................................................................................................................................................................................
+1.Application middleware
+2.Router level middleware
+3.Error handling middleware
+4.Third party middleware
+
+1.Application middleware:
+  Middleware is attached on application object
+
+2.Router level middleware
+->writing router:
+ In express except ,request and response , all features including router is middleware.
+ Router is in built middleware.
+
+
+								Error Handling Middleware
+
+const express = require('express')
+const app = express()
+
+const PORT = 3000
+
+app.get('/api/user/:name', (req, res) => {
+    const name = req.params.name
+    if (name === 'admin') {
+        res.send({ message: 'Welcome to Admin' })
+    } else {
+        throw new Error('User Is not valid')
+    }
+})
+
+//start server
+const server = app.listen(PORT, () => {
+    console.log(`Express server is ready! at ${server.address().port}`)
+})
+//server properties
+
+In the above code, the exception is thrown when user is not valid, we have to convert into meaningful  response
+
+Error Handling middleware
+
+What is Error Handling Middleware in Express?
+
+In Express.js, an error-handling middleware is a special middleware function that handles errors across your app.
+
+const express = require('express')
+const app = express()
+
+const PORT = 3000
+
+
+app.get('/api/user/:name', (req, res) => {
+    const name = req.params.name
+    if (name === 'admin') {
+        res.send({ message: 'Welcome to Admin' })
+    } else {
+        throw new Error('User Is not valid')
+    }
+})
+
+//404 Route not found error handler
+//this must be placed before Global error handler
+//it wont take next arg, because it terminates the request and response
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: `The route ${req.originalUrl} not Found`,
+    });
+});
+//Error Handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.message);
+    res.status(500).json({
+        success: false,
+        message: err.message
+    });
+})
+//start server
+const server = app.listen(PORT, () => {
+    console.log(`Express server is ready! at ${server.address().port}`)
+})
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									Chaining middleware
+app.post('/users',authenticate,validateUser,(req,res)=>{
+     //code 
+})
+const middlewareStack = [authenticate,validateUser]
+
+app.post('/users',middewareStack,(req,res)=>{
+     //code 
+})
+const express = require('express')
+const app = express()
+
+
+app.get('/', (req, res) => {
+    res.end('Home')
+})
+
+//way - 1 chaining
+// app.get('/api/greet', function (req, res, next) {
+//     console.log('chain-1')
+//     next()
+// }, function (req, res, next) {
+//     console.log('chain-2')
+//     next()
+// }, (req, res) => {
+//     res.end('Home')
+// })
+
+//way 2: writting middleware separatly 
+// const chain1 = function (req, res, next) {
+//     console.log('chain-1')
+//     next()
+// }
+// const chain2 = function (req, res, next) {
+//     console.log('chain-2')
+//     next()
+// }
+// app.get('/api/greet', chain1, chain2, (req, res) => {
+//     res.end('Home')
+// })
+
+const chain1 = function (req, res, next) {
+    console.log('chain-1')
+    next()
+}
+const chain2 = function (req, res, next) {
+    console.log('chain-2')
+    next()
+}
+const chains = [chain1, chain2]
+app.get('/api/greet', chains, (req, res) => {
+    res.end('Home')
+})
+
+app.listen(3000, () => {
+    console.log('Server running on port 3000')
+})
