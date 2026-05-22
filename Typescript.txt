@@ -1,0 +1,266 @@
+				Typescript
+..............................................................................................
+
+What is typescript?
+
+ Typescript is object oriented and functional style programming language.
+ Typescript that scales javascript.
+ scaling is nothing but expanding features.
+ Typescript is super set of Javascript.
+ Typescript is programming language to write javascript apps.
+
+Why Typescript?
+
+What is Javascript?
+
+ -Javascript is programming language.
+
+Styles of programming language
+ -Object oriented
+ -Procedure oriented
+ -Functional oriented
+ -Event driven
+
+Some languages designed with single style - c++,java,C#,c
+Some languages designed with multiple styles (hybrid) - Javascript,java 8,C#,Scala,Groovy,Kotiln....
+
+"JavaScript is Object based, functional Style, Event driven programming language."
+
+
+Object Oriented Principles:
+..............................................
+
+1.Abstraction
+2.Encapsulation
+3.Hierarchy
+4.Typing
+5.Modularity
+----------------------
+6.Concurrency
+7.Persistency
+
+if any language follows the first 5 principles 100% , those languages are called object
+oriented programming.
+
+java script does not follow the first 5 principles , so it is called as object based language.
+
+
+functional pure vs style:
+
+-if any language follows 100% functional programming principles those languages are called
+"purely functional", if not functional style.
+.............................................................................................
+					Typing
+				     (Data Types)
+.............................................................................................
+
+classification of data types:
+
+1.Strongly typed /Static Typed
+ The type of variable is verified during compile time.
+ int a =100;
+ a=true;
+  This is compile time error.
+
+ eg:
+  C,C++,Java,C#....
+
+2.Weakly typed/ Dynamic Typed
+
+ Dynamic typed language / weak typed language -----JavaScript
+        The type of variable is not verified during compile time, runtime verification.
+
+ variable=value
+ var i=10;
+ i=true
+ i="hello"
+.............................................................................................
+
+JavaScript is not object oriented
+JavaScript  is not strongly typed 
+
+.............................................................................................
+
+		Think: why js was designed to be dynamic typed?
+.............................................................................................
+
+Drawbacks of dynamic typing:
+    -We cant build enterprise consistent application.
+
+ -Object based 
+    if we  want to design , object oriented system in js not possible.
+
+Why JavaScript:
+  JavaScript was created for process html pages.
+
+1989 - Web Project was started   
+
+1990 -  The first webserver, Browser was created
+
+1994 - Netscape started
+
+1995 - The first nets cap navigator came to access web pages 
+
+1996 - Netscape decided to put java inside web browser.
+
+static web page- before Netscape
+dynamic web page -Netscape
+
+----Static web----- only hand coded html pages.
+
+1996 - CREATED Dynamic web : how to work with databases
+     - CGI - C,perl.
+ J2EE- Servlets,JSP
+ MS  - ASP
+ OPEN SOURCE - PHP.
+
+Netscape decided to build client side web technology- once html is rendered into web browser
+how to change that html on fly. 
+
+Netscape decided to create a new programming language, who recruited Brendan Eich
+,the programmer , asked to create new programming language for nets cap navigator.
+
+-Objective of Project
+
+-It should be like java but it should not be java -light weight - scripting
+-deadline is 10 days.
+
+Time line:
+
+1.javascript project started 1995
+1.first name of the language was "Mocha"
+2.language was renamed to "Live Script" -1996
+3.language was renamed to "java Script" -1996
+............................................................................................
+				 ECMA
+...................................................................................
+
+ECMA International is an industry association dedicated to the standardization of information and communication systems.
+
+After language ready, which was submitted to standard body "ECMA international"
+
+1996---1997 : JS 1.0 =>ES 1.0
+
+1997- 1998 :  ES 2.0: It did not come
+
+1999 :  ES 3
+
+2007 : ES 4
+
+2008 : ES 5
+.....
+
+2012-2015 : ES 6
+........
+2016  ONWARDS : es 7,es 8, ............
+.............................................................................................
+				..
+			2008 - Introduction of  Node.js : Enter prise Javascript
+..............................................................................................
+in order to build enterprise JavaScript apps, community started thinking about "Object oriented Models".
+
+How to introduce object oriented features into language.
+..............................................................................................
+Fundamentally js is object based, type less language, then it is difficult to build object oriented systems.
+
+in order to create better JavaScript, 2009, The project was started to make JavaScript looks like other object oriented languages.
+ 
+ - classes,interfaces,modules.... : Coffee script (intension was to introduce object oriented features like classes,interfaces).
+
+
+You write code in coffeescript
+
+Employee.coffee
+
+class Employee {
+
+}
+compiler - coffee Employee.coffe
+|
+Employee.js - compiled code -pure JavaScript 
+|
+run on browser
+
+
+Coffee script had issues still - Type system- No strongly typed.
+
+
+2010, Microsoft started project to create object oriented JavaScript using C#
+
+Objective of MS Project:
+
+ -Add Type System - Strong Typing
+ -Classes
+ -Modules
+ -interfaces
+ -encapsulation keywords
+ .......
+C# ---compiler------plain JavaScript.
+
+MS Failed to port this project to public because
+
+Problems with C#
+ 1.PORTABLITY.
+ 2.COMPLEXITY
+.............................................................................................
+2010, Microsoft started project to create object oriented javascript using C#
+
+Objective of MS Project:
+
+ -Add Type System - Strong Typing
+ -Classes
+ -Modules
+ -interfaces
+ -encapulation keywords
+ .......
+C# ---compiler------plain javascript.
+
+MS Failed to port this project to public because
+
+Problems with C#
+ 1.PORTABLITY.
+ 2.COMPLEXITY
+.............................................................................................
+
+2012 - ECMA released new JavaScript spec (ES 6) in which They introduced
+  
+   - classes
+   - let 
+   - const
+   - advanced object literals
+   - Promises
+  etc..........
+
+MS decided to rewrite Typed JavaScript project based "ECMA 6 Standards".
+
+MS Started redesigning the whole project, target ecma 6 as base language.
+
+{ES 6 + Static Typing + added new extra features} => The birth of Typescript.
+
+
+Arch of TS:
+
+					
+				      TS language
+					    |
+					  ES 6
+					    |
+					  ES 5
+
+
+Typescript----compile----Plain JavaScript
+
+Typescript is strongly typed, object oriented  JavaScript.
+
+Now you can use type script to build better object oriented systems using JavaScript.
+
+TS is not competitor or replacer for JavaScript but it complements js.
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+Type script is a typed superset of JavaScript that compiles to plain JavaScript
+
+                  any browser,any host, any os, any device
+
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
