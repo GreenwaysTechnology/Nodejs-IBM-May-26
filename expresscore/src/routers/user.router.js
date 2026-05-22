@@ -3,6 +3,23 @@ const express = require('express')
 const { findAll } = require('../services/users.service')
 const userRouter = express.Router()
 
+
+//router middlewares
+userRouter.use(function(req,res,next){
+    res.set("userGlobal","userGlobal")
+    next()
+})
+//router middlewares
+userRouter.use('/api/users/:id',function(req,res,next){
+    res.set("userById","userById")
+    next()
+})
+
+userRouter.get('/',(req,res,next)=>{
+    res.set("userGet","userGet")
+    next()
+})
+
 //logic
 userRouter.get('/', async (req, res) => {
     try {
