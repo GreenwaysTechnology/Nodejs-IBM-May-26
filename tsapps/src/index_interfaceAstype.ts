@@ -1,6 +1,6 @@
 
 //class As type
-type User = {
+interface User {
     id: number
     name: string
     isActive?: boolean

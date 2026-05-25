@@ -1,10 +1,10 @@
 
 //class As type
-type User = {
-    id: number
-    name: string
-    isActive?: boolean
-    city?: string
+class User {
+    id: number = 0
+    name: string = ""
+    isActive?: boolean = false //optional values/variables
+    city?: string = "city"
     gender?: "Male" | "Female" | "Third"
 }
 
@@ -20,7 +20,7 @@ function main() {
         name: 'Subramanian Murugan',
         // isActive: true,
         // city: 'Coimbatore'
-        gender: "Male"
+        gender:"Male"
     }
 
 }

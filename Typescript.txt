@@ -659,7 +659,578 @@ PrintId(1);
 PrintId(undefined)
 
 
+.....................................................................................
+                    .............................................................................................
+				Object oriented Programming In TS
+.....................................................................................
+class declaration
+  instance variables , methods
+  constructors and parameters
+  create instance
 
+
+simple class declartion:
+//class declaration
+
+class Employee {
+    //variables: instance variables
+    id: number = 1
+    name: string = "subramanian"
+    status: boolean = true
+
+    //methods:instance methods
+    calculate(value: number=0): number {
+        return 100 * value
+    }
+}
+//emp is reference variable
+//new is operator
+//Employee() is constructor call
+let emp = new Employee();
+console.log(`id ${emp.id} name ${emp.name} Status ${emp.status} value ${emp.calculate(12)}`)
+
+
+....
+
+//state initalization
+/**
+ * 1.inside class
+ * 2.outside class using reference variable
+ * 3.via constructor
+ */
+
+//inside class
+class Employee {
+    //variables: instance variables
+    id: number = 1
+    name: string = "subramanian"
+    status: boolean = true
+
+    //methods:instance methods
+    calculate(value: number=0): number {
+        return 100 * value
+    }
+}
+//emp is reference variable
+//new is operator
+//Employee() is constructor call
+let emp = new Employee();
+console.log(`id ${emp.id} name ${emp.name} Status ${emp.status} value ${emp.calculate(12)}`)
+
+.....
+
+//state initalization
+/**
+ * 1.inside class
+ * 2.outside class using reference variable
+ * 3.via constructor
+ */
+
+//inside class
+class Employee {
+    //variables: instance variables
+    id: number = 1
+    name: string = "subramanian"
+    status: boolean = true
+
+    //methods:instance methods
+    calculate(value: number=0): number {
+        return 100 * value
+    }
+}
+//emp is reference variable
+//new is operator
+//Employee() is constructor call
+let emp = new Employee();
+//state init
+emp.id =900;
+emp.name ='ram'
+console.log(`id ${emp.id} name ${emp.name} Status ${emp.status} value ${emp.calculate(12)}`)
+................
+constructor - initalization
+//state initalization
+/**
+ * 1.inside class
+ * 2.outside class using reference variable
+ * 3.via constructor
+ */
+
+//inside class
+class Employee {
+    //variables: instance variables
+    id: number
+    name: string
+    status: boolean
+
+    //constructor args :which can be default or optional
+    constructor(id: number = 1, name: string = 'subramaian', status: boolean = false) {
+        this.id = id;
+        this.name = name;
+        this.status = status
+    }
+
+    //methods:instance methods
+    calculate(value: number = 0): number {
+        return 100 * value
+    }
+}
+//emp is reference variable
+//new is operator
+//Employee() is constructor call
+let emp = new Employee();
+//state init
+emp.id = 900;
+emp.name = 'ram'
+console.log(`id ${emp.id} name ${emp.name} Status ${emp.status} value ${emp.calculate(12)}`)
+.....................................................................................
+//state initalization
+/**
+ * 1.inside class
+ * 2.outside class using reference variable
+ * 3.via constructor
+ */
+
+//inside class
+class Employee {
+    //variables: instance variables
+    id: number
+    name: string
+    status: boolean
+
+    //constructor args :which can be default or optional
+    constructor(id: number = 1, name: string = 'subramaian', status: boolean = false) {
+        this.id = id;
+        this.name = name;
+        this.status = status
+    }
+
+    //methods:instance methods
+    calculate(value: number = 0): number {
+        return 100 * value
+    }
+}
+//emp is reference variable
+//new is operator
+//Employee() is constructor call
+let emp = new Employee();
+console.log(`id ${emp.id} name ${emp.name} Status ${emp.status} value ${emp.calculate(12)}`)
+
+emp = new Employee(34,'karthik',true);
+
+console.log(`id ${emp.id} name ${emp.name} Status ${emp.status} value ${emp.calculate(12)}`)
+.....................................................................................
+				Dependency injection: Constructor args
+.....................................................................................
+
+Hierarchy :
+ HAS-A hierarchy - dependency injection.
+ IS-A hierarchy -  inheritance
+
+
+HAS-A :
+//classes are depending on each other 
+
+class EmployeeService {
+    constructor() {
+
+    }
+    findAll(): string {
+        return 'Employee Service'
+    }
+    save(emplyee: string) {
+        console.log(emplyee)
+        return 'saved'
+    }
+}
+
+class EmployeeController {
+    //type of empService is EmployeeService
+    //has-a /dependency
+    empService: EmployeeService
+    constructor(empService: EmployeeService) {
+        this.empService = empService
+    }
+
+    findAll() {
+        return this.empService.findAll()
+    }
+}
+
+//link objects
+
+let empService = new EmployeeService()
+//constructor injector
+let empCtrl = new EmployeeController(empService)
+
+console.log(empCtrl.findAll())
+
+//constructor injector
+let empCtrl1 = new EmployeeController(new EmployeeService())
+console.log(empCtrl1.findAll())
+....................................................................................					Inheritance
+
+1.class inheritance - es 6 feature
+2.interface inheritance -ts feature
+3.abstract class inheritance -ts feature
+
+
+class based inheritance:
+//base class
+
+class Account {
+    constructor(){
+        console.log('Account class')
+    }
+}
+class SavingsAccount extends Account{
+    constructor(){
+        super()
+        console.log('SavingsAccount class')
+    }
+}
+let sb = new SavingsAccount()
+
+.....
+//base class
+
+class Account {
+    constructor(){
+        console.log('Account class')
+    }
+    //
+    deposit(){
+        return 10
+    }
+}
+class SavingsAccount extends Account{
+    constructor(){
+        super()
+        console.log('SavingsAccount class')
+    }
+    //overriding
+    deposit(){
+        return 110 * super.deposit()
+    }
+}
+let sb = new SavingsAccount()
+console.log(sb.deposit())
+....................................................................................
+			  interfaces
+
+1.inspired from java,c# - to have common Behaviours for different class hierarchy
+
+//interface
+
+interface Fly {
+    fly(): string
+}
+class Airplane implements Fly {
+    fly(): string {
+        return "AirPlane"
+    }
+}
+
+let airPlane= new Airplane()
+console.log(airPlane.fly())
+................................................................................
+			 Abstract class
+..................................................................................
+
+//abstract class 
+
+abstract class Animal {
+    abstract eat(): string
+    saveAnimals(): void {
+        console.log('Save animals from the hunter')
+    }
+}
+class Tiger extends Animal {
+    eat(): string {
+        return 'tiger hunts other animals'
+    }
+}
+let tiger = new Tiger()
+console.log(tiger.eat())
+tiger.saveAnimals()
+....................................................................................
+			   Encapsulation
+.....................................................................................
+
+This is supported by ts 
+
+private,public,protected
+
+private within class
+public outside class - default behavior
+protected - base and derived class.
+
+
+private:
+//private instance variables and methods
+
+class Secret {
+    private password:string ='Abc123'
+
+    private generatePassword():string {
+        return this.password + Math.random()
+    }
+}
+let auth = new Secret()
+// console.log(auth.password)
+//  console.log(auth.generatePassword())
+
+
+public :
+
+class Employee {
+    //by default public
+    public id: number = 10
+
+    public calculate(): number {
+        return 100
+    }
+
+}
+
+let emp = new Employee()
+console.log(emp.id, emp.calculate())
+.....................................................................................
+
+				Variables Types
+
+1.instance variable
+  variable declared inside class
+2.static variables
+  variables declared inside class with static modifier
+3.local variables
+  variables are declared inside method(including constructor)
+  or method args / constructor args
+
+
+1.instance variables:
+
+class Employee {
+ public | private | protected id:number; //instance variable
+}
+variables are declared inside class
+
+
+2.static variables
+
+
+//static variables
+class ErrorMessage {
+    static SERVER_ERROR:string = 'Server error';
+    static INVALID_TOKEN = 'Token is invalid';
+    static TOKEN_NOTFOUND = 'Token Not supplied';
+}
+
+//read static variables
+console.log(ErrorMessage.SERVER_ERROR)
+console.log(ErrorMessage.INVALID_TOKEN)
+console.log(ErrorMessage.TOKEN_NOTFOUND)
+
+
+
+
+
+3.local variables
+ variables are declared inside method(including constructor)
+  or method args / constructor args.
+var| let | const 
+
+ class Demo { 
+
+   //
+    constructor(myvar:string){}
+    doStuff(){
+      let a=10;//local variables
+    }
+    sayHai(name:string="hello" //localvariable){
+
+    }
+ }
+..................................................................................
+			public and private keywords
+			  for code reduction
+
+
+// class Customer {
+//     //instance variables
+//     public id: number
+//     public name: string
+//     public status: boolean
+//     //constructor args are local variables
+//     constructor(id: number = 1, name: string = '', status: boolean = false) {
+//         this.id = id
+//         this.name = name
+//         this.status = status
+//     }
+// }
+
+
+// class Customer {
+//     //instance variables
+//     id: number
+//     name: string
+//     status: boolean
+//     //constructor args are local variables
+//     constructor(id: number = 1, name: string = '', status: boolean = false) {
+//         this.id = id
+//         this.name = name
+//         this.status = status
+//     }
+// }
+
+//reduce code by removing instance variables from the class declaration
+//we have to convert local variables(constructor args) into instance variables
+//we can convert constructor args variables into instance variable by adding "private or public keyword"
+// class Customer {
+//     //constructor args are local variables
+//     constructor(public id: number = 1, public name: string = '', public status: boolean = false) {
+//         this.id = id
+//         this.name = name
+//         this.status = status
+//     }
+// }
+
+//remove variable initalization code inside constructor because variables left side and right side both are same.
+class Customer {
+    //constructor args are local variables
+    constructor(public id: number = 1, public name: string = '', public status: boolean = false) { }
+}
+
+let cust = new Customer(12, 'Subramanian', true)
+console.log(cust)
+..........................**************............................................
+			Dependency injection and private ,public keywords
+...................................................................................
+
+
+class Logger {
+    constructor() {
+
+    }
+    log(message: string) {
+        console.log(message)
+    }
+}
+
+class UserService {
+    constructor(private logger: Logger) { }
+    findAll() {
+        this.logger.log('fetch users')
+        return 'Users'
+    }
+}
+class UserController {
+    // private userService: UserService
+    constructor(private userService: UserService) {// this.userService = userService
+    }
+    init() {
+        console.log(this.userService.findAll())
+    }
+}
+let usrCtrl = new UserController(new UserService(new Logger()))
+usrCtrl.init()
+
+..................................................................................
+				 Object types
+...............................................................................
+
+1.class as type
+2.interface as type
+3.type keyword as type
+
+For literal objects, how to enforce type safety for literal objects.
+
+//class as type 
+
+class Product {
+    //required fields and optional fields
+    id: number
+    //optional properties
+    name?: string
+    qty?: number
+    inStock?: boolean
+    category?: "Food" | "Electronics" | "Others"
+
+}
+
+//literal objects
+// let product: Product = {
+//     id: "1,",
+//     name: 'Phone',
+//     qty: 100,
+//     inStock: true
+// }
+let product: Product = {
+    id: 1,
+    name: 'Phone',
+    qty: 100,
+    inStock: true
+}
+//here we have only two properties, still ts compiler gives error, ts compiler looks all properties from the type class must present in the object defintion
+let newProduct: Product = {
+    id: 1,
+    inStock: false,
+    category:"Electronics"
+}
+
+interface as type
+
+//class as type 
+
+interface Product {
+    //required fields and optional fields
+    id: number
+    //optional properties
+    name?: string
+    qty?: number
+    inStock?: boolean
+    category?: "Food" | "Electronics" | "Others"
+
+}
+
+let product: Product = {
+    id: 1,
+    name: 'Phone',
+    qty: 100,
+    inStock: true
+}
+//here we have only two properties, still ts compiler gives error, ts compiler looks all properties from the type class must present in the object defintion
+let newProduct: Product = {
+    id: 1,
+    inStock: false,
+    category:"Electronics"
+}
+.....................................................................................
+//type as type 
+
+type Product = {
+    //required fields and optional fields
+    id: number
+    //optional properties
+    name?: string
+    qty?: number
+    inStock?: boolean
+    category?: "Food" | "Electronics" | "Others"
+
+}
+
+let product: Product = {
+    id: 1,
+    name: 'Phone',
+    qty: 100,
+    inStock: true
+}
+//here we have only two properties, still ts compiler gives error, ts compiler looks all properties from the type class must present in the object defintion
+let newProduct: Product = {
+    id: 1,
+    inStock: false,
+    category: "Electronics"
+}
+.....................................................................................
 
 
 
