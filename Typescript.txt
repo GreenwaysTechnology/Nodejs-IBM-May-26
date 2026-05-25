@@ -1231,6 +1231,195 @@ let newProduct: Product = {
     category: "Electronics"
 }
 .....................................................................................
+.....................................................................................
+				 Generics
+What is generics?
+  To restrict to have similar or same type of value inside container objects like array,Promise,Observable....
+
+//arrays
+//without type
+let list = [1, "hello", true]
+//with type:syntax-1
+let numList: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+console.log(numList)
+//with type:syntax-2 : generics syntax
+let numList2: Array<number> = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+//functions return array
+function getList(): Array<number> {
+    return [1, 2, 3, 4, 5, 6]
+}
+function getNumList(): number[] {
+    return [1, 2, 3, 4, 5, 6]
+}
+//array of Employees
+class Employee {
+    id: number
+    name: string
+}
+
+let employees: Array<Employee> = [{
+    id: 1,
+    name: 'a'
+}]
+.....................................................................................
+enum Direction {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+console.log(Direction.Up)
+console.log(Direction.Down)
+
+enum UserResponse {
+    No = 0,
+    Yes = 1,
+}
+function respond(recipient: string, message: UserResponse): void {
+    console.log(recipient, message)
+}
+
+respond("Princess Caroline", UserResponse.No);
+...................&&&&&&&&&&&&&&&&&&&...............................................
+
+annotations: @annotation , @Override,@Entity,@Controller
+
+-meta programming : isolate the code logic from main program to outside, when you 
+req, you inject those features , into code during runtime.
+
+Decorators are experimental feature in es7. but ts added this language with experimental mode.
+
+What is decorator ?
+
+ It is simple JavaScript function.
+
+
+Steps
+
+1.declare decorator function
+ It is regular javascript function with some syntax.
+2.Use decorator
+ @Decorator
+		
+Types of decorator:
+1.class level decorator
+2.field level decorator
+3.method level decorator
+
+Angular/nest js provides lot of built in decorators, here we explore how to use those decorators and how it has been written.
+
+Step 0: 
+tsconfig.json
+{
+    "compilerOptions": {
+        "outDir": "build",
+        "watch": true,
+        "noEmitOnError": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true
+    },
+    "exclude": [
+        "node_modules"
+    ],
+    "files": [
+        "src/index.ts"
+    ]
+}
+
+Step 1:
+ Declare decorator function and write decorator logic
+
+Step 2:
+ Use/inject decorators on to class,field,method....
+
+
+//Decorator:
+
+function Course(target: any) {
+    //decorator logic
+    //inject course information
+    Object.defineProperty(target.prototype, 'subject', { value: 'Typescript' })
+}
+
+@Course
+class Student {
+    constructor(public name: string = '') { }
+}
+let student = new Student('Subramanian') as any
+console.log(`${student.name} is learning ${student.subject}`)
+.....................................................................................
+
+Decorators with Parameter:
+//Decorator:
+
+// function Course(target: any) {
+//     //decorator logic
+//     //inject course information
+//     Object.defineProperty(target.prototype, 'subject', { value: 'Typescript' })
+// }
+
+// function Course(courseInfo: any) {
+//     return function (target: any) {
+//         Object.defineProperty(target.prototype, 'subject', { value: courseInfo })
+//     }
+// }
+
+// @Course('Angular with Java')
+// class Student {
+//     constructor(public name: string = '') { }
+// }
+// let student = new Student('Subramanian') as any
+// console.log(`${student.name} is learning ${student.subject}`)
+
+function Course(courseInfo: any) {
+    return function (target: any) {
+        Object.defineProperty(target.prototype, 'courseInfo', { value: courseInfo })
+    }
+}
+
+@Course({ name: 'Angular with java', duration: '40 hrs', instructor: 'Subramanian' })
+class Student {
+    constructor(public name: string = '') { }
+}
+let student = new Student('Ram') as any
+console.log(`${student.name} is learning ${student.courseInfo.name} ${student.courseInfo.duration} ${student.courseInfo.instructor}`)
+
+
+
+//target:object,propertyKey = method name, descriptor=Method meta data
+function Log(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+    const originalMethod = descriptor.value;
+    descriptor.value = function (...args: any[]) {
+        //log 
+        console.log("Method Name :", propertyKey)
+        console.log("Arguments:", args)
+        const result = originalMethod.apply(this, args)
+        console.log("Method finished")
+        return result;
+    }
+
+}
+class Dog {
+    @Log 
+    eat(){
+        console.log('dog eats')
+    }
+}
+
+
+class Calculator {
+
+    @Log
+    add(a: number, b: number) {
+        return a + b
+    }
+}
+let calc = new Calculator()
+console.log("Result :", calc.add(1, 2))
+
+let dog = new Dog()
+dog.eat()
 
 
 
