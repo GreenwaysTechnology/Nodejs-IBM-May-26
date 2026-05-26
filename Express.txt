@@ -1232,3 +1232,221 @@ const server = app.listen(PORT, () => {
 })
 //server properties
 
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+			 Data base Integration
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+ 
+Now a days data storage is basically classified into two category.
+
+1.SQL Based
+2.No SQL Based
+  1.Key-value pair
+  2.Document based 
+  3.column based
+  4.graph based
+
+Products 
+1.SQL
+  Oracle
+  Microsoft SQL server
+  MySQL
+  DB2
+  Postgress 
+  MariaDB
+ etc...
+
+2.NoSQL
+ 1.Key-value pair
+    Redis
+ 2.Document oriented
+   Mongodb
+ 3.Column based
+   Aws dynamo 
+ 4.Graph based
+     neo4j
+
+Note:
+ From node.js(express) , we can connect and work with all databases, if there is drivers and apis for those databases
+
+In order to connect with databases, application frameworks offers the frameworks which makes code more simple and abstract database operations
+
+Mongodb frameworks: 
+
+ ODM - Object Document Modeling framework 
+
+Basic Requirements:
+
+1.You need mongodb installed in your local machine
+
+Note: Nobody is installing mongodb /any database locally.
+
+Ways of using mongo(any database)
+
+1.Via docker / Pod Man
+2.You can use free cloud account for testing
+
+
+Code:
+
+.env
+PORT=3000
+DATABASE_URL=mongodb+srv://subugee:subugee222@cluster0.shfpbhv.mongodb.net/myDatabase?retryWrites=true&w=majority&appName=Cluster0
+
+src/models/Post.model.js
+const mongoose = require('mongoose')
+
+//delclare schema and later create model
+const postSchema = mongoose.Schema({
+    title: String,
+    content: String
+})
+//create model and export 
+module.exports = mongoose.model("Post", postSchema)
+
+src/services/post.service.js
+const Post = require("../models/post.model")
+
+class PostService {
+
+    async save({ title, content }) {
+        const newPost = new Post({ title, content })
+        //call method of mongoose
+        await newPost.save()
+        return newPost
+    }
+    async findAll() {
+        return Post.find({})
+    }
+    async findById(id) {
+        const post = await Post.findOne({ _id: id })
+        return post
+    }
+    //update
+    async update(id, { title, content }) {
+        const post = await Post.findOne({ _id: id })
+        if (!post) {
+            throw Error()
+        }
+        if (title) {
+            //update title
+            post.title = title
+        }
+        if (content) {
+            post.content = content
+        }
+        //update operations
+        await post.save()
+        return post
+    }
+    async remove(id) {
+        const post = await Post.findOne({ _id: id })
+        if (post) {
+            await Post.deleteOne({ _id: id })
+        }
+        else {
+            throw Error("No record is found")
+        }
+    }
+}
+
+module.exports = new PostService()
+
+src/router/post.router.js
+const express = require('express')
+const { findAll, save, findById, update, remove } = require('../services/post.service')
+
+const postRouter = express.Router()
+
+
+postRouter.get('/', async (req, res) => {
+    try {
+        const posts = await findAll()
+        res.json(posts)
+    }
+    catch (err) {
+        res.status(404).json({ err })
+    }
+})
+postRouter.post('/', async (req, res) => {
+    const post = req.body
+    try {
+        const savedPost = await save(post)
+        res.status(201).json(savedPost)
+    }
+    catch (err) {
+        res.status(400).json({ err })
+    }
+})
+postRouter.get('/:id', async (req, res) => {
+    const id = req.params.id
+    try {
+        const post = await findById(id)
+        if (post) {
+            res.json(post)
+        } else {
+            res.json({ message: 'No Post Available' })
+        }
+    }
+    catch (err) {
+        res.status(400).json({ err })
+
+    }
+})
+postRouter.put('/:id', async (req, res) => {
+    const id = req.params.id
+    const postInput = req.body
+    try {
+        const post = await update(id, postInput)
+        res.json(post)
+    }
+    catch (err) {
+        res.status(404).json({ err })
+    }
+})
+postRouter.delete('/:id', async (req, res) => {
+    const id = req.params.id
+    try {
+        await remove(id)
+        res.status(204).send()
+    }
+    catch (err) {
+        res.status(400).json({ err: err.message })
+    }
+})
+
+
+
+module.exports = postRouter
+
+src/app.js
+require('dotenv').config()
+const express = require('express')
+const bodyParser = require('body-parser')
+const mongoose = require('mongoose')
+
+const app = express()
+const PORT = process.env.PORT || 3000
+app.use(bodyParser.json())
+
+async function connectDb() {
+    try {
+        await mongoose.connect(process.env.DATABASE_URL)
+        console.log('Database has been connected')
+        // const server = app.listen(PORT, () => {
+        //     console.log(server.address())
+        //     console.log(`Express is running @ ${server.address().port}`)
+        // })
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+connectDb()
+
+app.use('/api/posts', require('./routers/post.router'))
+
+
+const server = app.listen(PORT, () => {
+    console.log(server.address())
+    console.log(`Express is running @ ${server.address().port}`)
+})
