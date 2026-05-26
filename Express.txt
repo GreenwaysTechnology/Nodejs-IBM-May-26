@@ -1450,3 +1450,604 @@ const server = app.listen(PORT, () => {
     console.log(server.address())
     console.log(`Express is running @ ${server.address().port}`)
 })
+
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										 Data base Integration
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+ 
+Now a days data storage is basically classified into two category.
+
+1.SQL Based
+2.No SQL Based
+  1.Key-value pair
+  2.Document based 
+  3.column based
+  4.graph based
+
+Products 
+1.SQL
+  Oracle
+  Microsoft SQL server
+  MySQL
+  DB2
+  Postgress 
+  MariaDB
+ etc...
+
+2.NoSQL
+ 1.Key-value pair
+    Redis
+ 2.Document oriented
+   Mongodb
+ 3.Column based
+   Aws dynamo 
+ 4.Graph based
+     neo4j
+
+Note:
+ From node.js(express) , we can connect and work with all databases, if there is drivers and apis for those databases
+
+In order to connect with databases, application frameworks offers the frameworks which makes code more simple and abstract database operations
+
+Mongodb frameworks: 
+
+ ODM - Object Document Modeling framework 
+
+Basic Requirements:
+
+1.You need mongodb installed in your local machine
+
+Note: Nobody is installing mongodb /any database locally.
+
+Ways of using mongo(any database)
+
+1.Via docker / Pod Man
+2.You can use free cloud account for testing
+
+
+Code:
+
+.env
+PORT=3000
+DATABASE_URL=mongodb+srv://subugee:subugee222@cluster0.shfpbhv.mongodb.net/myDatabase?retryWrites=true&w=majority&appName=Cluster0
+
+src/models/Post.model.js
+const mongoose = require('mongoose')
+
+//delclare schema and later create model
+const postSchema = mongoose.Schema({
+    title: String,
+    content: String
+})
+//create model and export 
+module.exports = mongoose.model("Post", postSchema)
+
+src/services/post.service.js
+const Post = require("../models/post.model")
+
+class PostService {
+
+    async save({ title, content }) {
+        const newPost = new Post({ title, content })
+        //call method of mongoose
+        await newPost.save()
+        return newPost
+    }
+    async findAll() {
+        return Post.find({})
+    }
+    async findById(id) {
+        const post = await Post.findOne({ _id: id })
+        return post
+    }
+    //update
+    async update(id, { title, content }) {
+        const post = await Post.findOne({ _id: id })
+        if (!post) {
+            throw Error()
+        }
+        if (title) {
+            //update title
+            post.title = title
+        }
+        if (content) {
+            post.content = content
+        }
+        //update operations
+        await post.save()
+        return post
+    }
+    async remove(id) {
+        const post = await Post.findOne({ _id: id })
+        if (post) {
+            await Post.deleteOne({ _id: id })
+        }
+        else {
+            throw Error("No record is found")
+        }
+    }
+}
+
+module.exports = new PostService()
+
+src/router/post.router.js
+const express = require('express')
+const { findAll, save, findById, update, remove } = require('../services/post.service')
+
+const postRouter = express.Router()
+
+
+postRouter.get('/', async (req, res) => {
+    try {
+        const posts = await findAll()
+        res.json(posts)
+    }
+    catch (err) {
+        res.status(404).json({ err })
+    }
+})
+postRouter.post('/', async (req, res) => {
+    const post = req.body
+    try {
+        const savedPost = await save(post)
+        res.status(201).json(savedPost)
+    }
+    catch (err) {
+        res.status(400).json({ err })
+    }
+})
+postRouter.get('/:id', async (req, res) => {
+    const id = req.params.id
+    try {
+        const post = await findById(id)
+        if (post) {
+            res.json(post)
+        } else {
+            res.json({ message: 'No Post Available' })
+        }
+    }
+    catch (err) {
+        res.status(400).json({ err })
+
+    }
+})
+postRouter.put('/:id', async (req, res) => {
+    const id = req.params.id
+    const postInput = req.body
+    try {
+        const post = await update(id, postInput)
+        res.json(post)
+    }
+    catch (err) {
+        res.status(404).json({ err })
+    }
+})
+postRouter.delete('/:id', async (req, res) => {
+    const id = req.params.id
+    try {
+        await remove(id)
+        res.status(204).send()
+    }
+    catch (err) {
+        res.status(400).json({ err: err.message })
+    }
+})
+
+
+
+module.exports = postRouter
+
+src/app.js
+require('dotenv').config()
+const express = require('express')
+const bodyParser = require('body-parser')
+const mongoose = require('mongoose')
+
+const app = express()
+const PORT = process.env.PORT || 3000
+app.use(bodyParser.json())
+
+async function connectDb() {
+    try {
+        await mongoose.connect(process.env.DATABASE_URL)
+        console.log('Database has been connected')
+        // const server = app.listen(PORT, () => {
+        //     console.log(server.address())
+        //     console.log(`Express is running @ ${server.address().port}`)
+        // })
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+connectDb()
+
+app.use('/api/posts', require('./routers/post.router'))
+
+
+const server = app.listen(PORT, () => {
+    console.log(server.address())
+    console.log(`Express is running @ ${server.address().port}`)
+})
+											 Express ,Prisma-7 ,SQL - Typescript version
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+Set up Prisma framework:
+............................................
+
+Relational databases
+
+Prerequisites
+1.an existing Node.js project with a package.json
+
+2.Node.js installed on your machine
+
+3.A database server running and a database with at least one table
+  (we are going sqlite db)
+
+create project with all dependency:
+
+ Note: we are going to use in-memory database called SQLite.
+
+1. Create a new project
+Create a project directory and navigate into it:
+
+mkdir expressPrisma
+cd expressPrisma
+
+Initialize a TypeScript project:
+npm init -y
+npm install typescript tsx @types/node --save-dev
+npx tsc --init
+
+2. Install required dependencies
+Install the packages needed for this quickstart:
+
+npm install prisma @types/node @types/better-sqlite3 -D
+npm install @prisma/client @prisma/adapter-better-sqlite3 dotenv
+
+Here's what each package does:
+
+prisma - The Prisma CLI for running commands like prisma init, prisma migrate, and prisma generate
+@prisma/client - The Prisma Client library for querying your database
+@prisma/adapter-better-sqlite3 - The SQLite driver adapter that connects Prisma Client to your database
+@types/better-sqlite3 - TypeScript type definitions for better-sqlite3
+dotenv - Loads environment variables from your .env file
+
+3. Configure ESM support
+Update tsconfig.json for ESM compatibility:
+
+tsconfig.json
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ES2023",
+    "strict": true,
+    "esModuleInterop": true,
+    "ignoreDeprecations": "6.0"
+  }
+}
+Update package.json to enable ESM:
+
+{
+  "type": "module"
+}
+4. Initialize Prisma ORM
+You can now invoke the Prisma CLI by prefixing it with npx:
+
+Next, set up your Prisma ORM project by creating your Prisma Schema file with the following command:
+
+>npx prisma init --datasource-provider sqlite --output ../generated/prisma
+
+This command does a few things:
+
+Creates a prisma/ directory with a schema.prisma file containing your database connection and schema models
+Creates a .env file in the root directory for environment variables
+Creates a prisma.config.ts file for Prisma configuration
+
+
+Initialized Prisma in your project
+
+  prisma/
+    schema.prisma
+  prisma.config.ts
+  .env
+  .gitignore
+
+Next, set up your database:
+  1. Configure your DATABASE_URL in prisma.config.ts
+  2. Run prisma db pull to introspect your database.
+
+Then, define your models in prisma/schema.prisma and run prisma migrate dev to apply your schema.
+
+Learn more: https://pris.ly/getting-started
+
+The generated prisma.config.ts file looks like this:
+
+import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  migrations: {
+    path: "prisma/migrations",
+  },
+  datasource: {
+    url: env("DATABASE_URL"),
+  },
+});
+
+A .env file should be created with the following value:
+
+.env
+
+DATABASE_URL="file:./dev.db"
+
+5. Define your data model
+Open prisma/schema.prisma and add the following models:
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+model User { 
+  id    Int     @id @default(autoincrement()) 
+  email String  @unique
+  name  String?
+} 
+
+6. Create and apply your first migration
+Create your first migration to set up the database tables:
+
+>npx prisma migrate dev --name init
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
+SQLite database dev.db created at file:./dev.db
+
+Applying migration `20260223063102_init`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20260223063102_init/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+This command creates the database tables based on your schema.
+
+Now run the following command to generate the Prisma Client:
+
+npx prisma generate
+
+>npx prisma generate
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+
+✔ Generated Prisma Client (7.4.1) to .\generated\prisma in 32ms
+
+7. Instantiate Prisma Client
+Now that you have all the dependencies installed, you can instantiate Prisma Client. You need to pass an instance of the Prisma ORM driver adapter adapter to the PrismaClient constructor:
+
+lib/prisma.ts
+import "dotenv/config";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaClient } from "../generated/prisma/client";
+
+const connectionString = `${process.env.DATABASE_URL}`;
+
+const adapter = new PrismaBetterSqlite3({ url: connectionString });
+const prisma = new PrismaClient({ adapter });
+
+export { prisma };
+
+8.Testing:
+import { prisma } from "../lib/prisma";
+
+
+async function main() {
+    try {
+        //primsa.
+        const users = await prisma.user.findMany();
+        console.log(users)
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+main()
+ >npx tsx src/app.ts
+[]
+
+if you get empty array, your prisma setup is working fine.
+
+Express with Typescript Setup:
+{
+  "name": "expressprisma",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec \"npx tsx\" src/app.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/body-parser": "^1.19.6",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.3.0",
+    "nodemon": "^3.1.14",
+    "prisma": "^7.4.1",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@prisma/adapter-better-sqlite3": "^7.4.1",
+    "@prisma/client": "^7.4.1",
+    "body-parser": "^2.2.2",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1"
+  }
+}
+
+src/app.ts
+
+import express from 'express'
+import { userRouter } from './routers/user.router.ts'
+
+const app = express()
+
+app.use(express.json())
+
+app.use('/api/users', userRouter)
+
+app.get('/', (req, res) => {
+    res.json({ message: 'Home' })
+})
+
+app.listen(3000, () => {
+    console.log("Server is Running")
+})
+routers/user.router.js
+import express from 'express'
+import { prisma } from '../../lib/prisma.ts'
+
+const userRouter = express.Router()
+
+userRouter.get('/', async (req, res) => {
+    try {
+        const users = await prisma.user.findMany();
+
+        res.json(users)
+    }
+    catch (err) {
+        res.status(500).json({ err: err })
+    }
+})
+
+userRouter.post('/', async (req, res) => {
+    try {
+        const newUser = req.body
+        console.log('newUser', newUser)
+        if (newUser) {
+            const user = await prisma.user.create({
+                data: {
+                    email: newUser.email,
+                    name: newUser.name
+                }
+            })
+            res.status(201).location("/api/users/save").json(user)
+        }
+    }
+    catch (err) {
+        res.status(400).json({ message: err })
+
+    }
+})
+
+userRouter.get('/:id', async (req, res) => {
+    const id = Number(req.params.id)
+    try {
+        const user = await prisma.user.findUnique({
+            where: {
+                //id: id
+                id
+            },
+        })
+        if (user == null) {
+            res.status(401).json({ message: `User not found for ID ${id}` })
+        }
+        res.status(200).json(user)
+    }
+    catch (err) {
+        res.status(400).json({ message: err })
+    }
+})
+userRouter.put('/:id', async (req, res) => {
+    try {
+        const id = Number(req.params.id)
+        const user = req.body
+        //update 
+        const updateUser = await prisma.user.update({
+            where: {
+                id: id
+            },
+            data: {
+                name: user.name,
+                email: user.email
+            }
+        })
+        if (updateUser) {
+            res.status(200).json(updateUser)
+        } else {
+            res.status(401).json({ message: `Update failed for ${id}` })
+        }
+    }
+    catch (err) {
+        res.status(400).json({ message: err })
+    }
+})
+userRouter.delete('/:id', async (req, res) => {
+    const id = Number(req.params.id)
+    try {
+        const user = await prisma.user.findUnique({
+            where: {
+                //id: id
+                id
+            },
+        })
+        if (user == null) {
+            res.status(401).json({ message: `User not found for ID ${id}` })
+        } else {
+            await prisma.user.delete({
+                where: {
+                    id
+                },
+            })
+            res.status(204).end()
+        }
+
+
+    }
+    catch (err) {
+        res.status(400).json({ message: err.message })
+    }
+})
+export { userRouter }
+
+lib/prisma.ts
+import "dotenv/config";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaClient } from "../generated/prisma/client";
+
+const connectionString = `${process.env.DATABASE_URL}`;
+
+const adapter = new PrismaBetterSqlite3({ url: connectionString });
+const prisma = new PrismaClient({ adapter });
+
+export { prisma };
+
+How to run
+
+>npx tsx src/app.ts
+or
+>npm run dev
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
