@@ -12,5 +12,8 @@
   "type": "commonjs",
   "dependencies": {
     "moleculer": "^0.15.0"
+  },
+  "devDependencies": {
+    "moleculer-repl": "^0.8.0"
   }
 }

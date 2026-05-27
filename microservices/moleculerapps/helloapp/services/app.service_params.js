@@ -27,7 +27,9 @@ broker.createService({
 async function main() {
     try {
         await broker.start()
-        broker.repl()
+        console.log("Broker is ready!")
+        const mul = await broker.call('math.multiply', { a: 10, b: 20 })
+        console.log(mul)
     }
     catch (err) {
         console.log(err)
