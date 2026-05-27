@@ -2051,3 +2051,217 @@ or
 >npm run dev
 
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+				&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+				 Authentication and Authorization 
+
+JWT based authentication:
+1.user registration
+2.login
+3.token creation
+4.token validation
+5.Protected route
+
+Project setup:
+>mkdir express-jwt-auth
+>npm init --yes
+>npm i express
+>npm i body-parser
+>npm install nodemon --save-dev
+>npm i jsonwebtoken
+>npm i bcryptjs
+
+
+Step 1: registration:
+const express = require('express')
+const bodyParser = require('body-parser')
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs') //password hashing
+
+const app = express()
+const PORT = 3000
+app.use(bodyParser.json())
+
+//Registration; how to initalize the users without actual database.
+const users = [];
+
+//user registration route
+app.post('/register', async (req, res) => {
+    const { username, password } = req.body
+    //hash the password before storing into db
+    const hashedPassword = await bcrypt.hash(password, 10)
+    users.push({ username, password: hashedPassword })
+    console.log(users)
+    res.status(201).json({ message: 'User Registered!' })
+})
+
+app.listen(PORT, (req, res) => {
+    console.log(`Express Server is ready`)
+})
+
+Step 2:
+
+User login and Token Generation:
+
+const express = require('express')
+const bodyParser = require('body-parser')
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs') //password hashing
+
+const app = express()
+const PORT = 3000
+app.use(bodyParser.json())
+
+//Registration; how to initalize the users without actual database.
+const users = [];
+
+//user registration route
+app.post('/register', async (req, res) => {
+    const { username, password } = req.body
+    //hash the password before storing into db
+    const hashedPassword = await bcrypt.hash(password, 10)
+    users.push({ username, password: hashedPassword })
+    console.log(users)
+    res.status(201).json({ message: 'User Registered!' })
+})
+
+app.post('/login', async (req, res) => {
+    const { username, password } = req.body
+    //find user is available in the db or not
+    const user = users.find(u => u.username === username)
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+        return res.status(401).json({ message: 'Invalid Credentials' })
+    }
+    //if valid user, generate token and send that token to user
+    const privateKey = 'your-secret-key'
+    const token = jwt.sign({ username: user.username }, privateKey, { 'expiresIn': '1hr' })
+    res.json({ token })
+})
+
+app.listen(PORT, (req, res) => {
+    console.log(`Express Server is ready`)
+})
+
+Step 3:
+ I am going to create a particular route, i want to protect , that means without login, i should not access that route.
+
+const express = require('express')
+const bodyParser = require('body-parser')
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs') //password hashing
+
+const app = express()
+const PORT = 3000
+app.use(bodyParser.json())
+
+const privateKey = 'your-secret-key'
+
+//Registration; how to initalize the users without actual database.
+const users = [];
+
+//user registration route
+app.post('/register', async (req, res) => {
+    const { username, password } = req.body
+    //hash the password before storing into db
+    const hashedPassword = await bcrypt.hash(password, 10)
+    users.push({ username, password: hashedPassword })
+    console.log(users)
+    res.status(201).json({ message: 'User Registered!' })
+})
+
+app.post('/login', async (req, res) => {
+    const { username, password } = req.body
+    //find user is available in the db or not
+    const user = users.find(u => u.username === username)
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+        return res.status(401).json({ message: 'Invalid Credentials' })
+    }
+    //if valid user, generate token and send that token to user
+
+    const token = jwt.sign({ username: user.username }, privateKey, { 'expiresIn': '1hr' })
+    res.json({ token })
+})
+
+//middleware to intercept before access dashboard
+function authicateToken(req, res, next) {
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+    if (!token) {
+        return res.status(401).json({ message: 'Access Denied. No Token Provided' })
+    }
+    jwt.verify(token, privateKey, (err, user) => {
+        if (err) {
+            return res.status(403).json({ message: 'Invalid or Expired Token' })
+        }
+        req.user = user
+        next()
+    })
+}
+
+
+//route to be protected
+app.get('/dashboard', authicateToken, (req, res) => {
+    res.json({ message: `Welcome ${req.user.username}` })
+})
+app.listen(PORT, (req, res) => {
+    console.log(`Express Server is ready`)
+})
+
+Testing:
+
+Register:
+
+POST  localhost:3000/register
+
+Login
+
+POST /localhost:3000/login 
+{
+    "username":"subu",
+    "password": "subu"
+}
+response would be:
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InN1YnUiLCJpYXQiOjE3NjIxNTUzNDQsImV4cCI6MTc2MjE1ODk0NH0.1Or5uJRJrzZmHUW1MfOrCWQ2IKM8th3GEX9_w8clP7U"
+}
+
+GET localhost:3000/dashboard
+
+Go to Authroization section in POST Man,Find Authorization , BearToken, past the token generated in the login step
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InN1YnUiLCJpYXQiOjE3NjIxNTUzNDQsImV4cCI6MTc2MjE1ODk0NH0.1Or5uJRJrzZmHUW1MfOrCWQ2IKM8th3GEX9_w8clP7U"
+
+Click send button
+
+Response:
+{
+    "message": "Welcome subu"
+}
+
+if token not supplied
+{
+    "message": "Access Denied. No Token Provided"
+}
+if wrong token
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InN1YnUiLCJpYXQiOjE3NjIxNTUzNDQsImV4cCI6MTc2MjE1ODk0NH0.1Or5uJRJrzZmHUW1MfOrCWQ2IKM8th3GEX9_w8cflP7U
+
+Response wourld be
+{
+    "message": "Invalid or Expired Token"
+}
+
+Task : 
+  You have to register users into db - Prisma -SQLite
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
