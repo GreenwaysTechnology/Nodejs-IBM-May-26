@@ -1,0 +1,379 @@
+Moleculer
+.........................................................................................................................................................................................................................................
+
+What is Moleculer?
+	Moleculer is node.js framework for building microservices application.
+	Moleculer implements most of the design patterns of microservices.	
+
+Features of Moleculer:
+
+1.Promise-based solution (async/await compatible)
+2.request-reply concept
+3.support event driven architecture with load balancing
+4.built-in service registry & dynamic service discovery
+5.load balanced requests & events (round-robin, random, cpu-usage, latency, sharding)
+6.many fault tolerance features (Circuit Breaker, Bulkhead, Retry, Timeout, Fallback)
+plugin/middleware system
+7.support versioned services
+8.support Streams
+9.service mixins
+10.built-in caching solution (Memory, MemoryLRU, Redis)
+11.pluggable loggers (Console, File, Pino, Bunyan, Winston, Debug, Datadog, Log4js)
+12.pluggable transporters (TCP, NATS, MQTT, Redis, NATS Streaming, Kafka, AMQP 0.9, AMQP 1.0)
+13.pluggable serializers (JSON, Avro, MsgPack, Protocol Buffer, Thrift)
+14.pluggable parameter validator
+15.multiple services on a node/server
+16.master-less architecture, all nodes are equal
+17.parameter validation with fastest-validator
+18.built-in metrics feature with reporters (Console, CSV, Datadog, Event, Prometheus, StatsD)
+19.built-in tracing feature with exporters (Console, Datadog, Event, Jaeger, Zipkin)
+20.official API gateway, Database access and many other modules…
+
+core concepts:
+
+1.Service
+	 A service is a simple JavaScript module containing some part of a complex application. 
+	 A service represents a biz logic in your application.
+
+2.Service Broker : == Spring Container
+
+ Service Broker is the heart of Moleculer.
+ It is responsible for management and communication between services (local and remote). 
+
+
+3.node :
+ A node is a simple OS process running on a local or external network.
+ A single instance of a node can host one or many services.
+ node js platform - v8+libvu..
+
+Each node must have an instance of Service Broker.
+ "Service Broker is one single Node instance - Node runtime"
+
+4.Transporter
+	Transporter is a communication bus that services use to exchange messages. 
+ It transfers events, requests and responses.
+
+5.Gateway
+     API Gateway exposes Moleculer services to end-users.
+ The gateway is a regular Moleculer service running a (HTTP, WebSockets, etc.) server. It handles the incoming requests, maps them into service calls, and then returns appropriate responses.
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+			Coding -Getting started
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+Service Types:
+1.Back end services - It is not exposed as "REST" API
+2.Front end Services  -It is rest apis.
+
+Project setup :
+1.using tool Moleculer cli tool
+2.without using any tool.
+
+Project creation:
+.................
+ just simple node project.
+G:\IBM\2025\July\Node\microservices\basic-app>
+
+G:\IBM\2025\July\Node\microservices\basic-app>npm init --yes
+Wrote to G:\IBM\2025\July\Node\microservices\basic-app\package.json:
+
+{
+  "name": "basic-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
+
+npm install moleculer
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+Use case 1: How to start Moleculer 
+const { ServiceBroker } = require('moleculer')
+
+//Create Service Broker Object
+const broker = new ServiceBroker()
+
+
+function main() {
+    broker.start().then(() => {
+        console.log('Broker is ready!')
+    }).catch(err => {
+        console.log('Broker got Failed', err)
+    })
+}
+main()
+
+Use case 2: async ....await
+const { ServiceBroker } = require('moleculer')
+
+const broker = new ServiceBroker()
+
+
+async function main() {
+    try {
+        await broker.start()
+        console.log('Broker is Ready!')
+    }
+    catch (err) {
+        console.log('Broker is Failed to start', err)
+    }
+}
+main()
+
+
+Use case 3: How to create service ? and How to use
+
+Every service has its own schema , that means configuration
+
+Schema configuration:
+   The schema has some main parts: name, version, settings, actions, methods, events
+
+const { ServiceBroker } = require('moleculer')
+
+const broker = new ServiceBroker()
+
+//create a service: having biz logic
+broker.createService({
+    name: 'hello', //define name of the service
+    actions: {
+        //where biz logic goes
+        sayHello() {
+            return 'Hello Moleculer'
+        }
+    }
+})
+
+
+async function main() {
+    try {
+        await broker.start()
+        //when broker ready, you can invoke services
+       const response=  await broker.call('hello.sayHello')
+       console.log(response)
+    }
+    catch (err) {
+        console.log('Broker is Failed to start', err)
+    }
+}
+main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Use case : How to declare multiple services and multiple methods per service?
+
+const { ServiceBroker } = require('moleculer')
+
+const broker = new ServiceBroker()
+
+//create a service: having biz logic
+broker.createService({
+    name: 'hello', //define name of the service
+    actions: {
+        //where biz logic goes
+        sayHello() {
+            return 'Hello Moleculer'
+        }
+    }
+})
+broker.createService({
+    name: 'hai', //define name of the service
+    actions: {
+        //where biz logic goes
+        sayHai() {
+            return 'Hai Moleculer'
+        }
+    }
+})
+broker.createService({
+    name: 'math', //define name of the service
+    actions: {
+        add() {
+            return 10 + 10
+        },
+        multiply() {
+            return 10 * 10
+        }
+    }
+})
+
+async function main() {
+    try {
+        await broker.start()
+        //when broker ready, you can invoke services
+        const hello = await broker.call('hello.sayHello')
+        const hai = await broker.call('hai.sayHai')
+        const add = await broker.call('math.add')
+        const multiply = await broker.call('math.multiply')
+        console.log(hello, hai, add, multiply)
+    }
+    catch (err) {
+        console.log('Broker is Failed to start', err)
+    }
+}
+main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+								    Service Modularization
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+Use case: How to isolate services into separate file/folder?
+
+services/greeter.service.js
+
+//service defintion 
+module.exports = {
+    name: 'welcome',
+    actions: {
+        sayHello() {
+            return 'Hello'
+        }
+    }
+}
+services/app.service.js
+const { ServiceBroker } = require('moleculer')
+
+const broker = new ServiceBroker()
+
+//load services
+broker.loadService('./services/greeter.service')
+
+async function main() {
+    try {
+        await broker.start()
+        const res = await broker.call('welcome.sayHello')
+        console.log(res)
+    }
+    catch (err) {
+        console.log('Broker is Failed to start', err)
+    }
+}
+main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+				Service Parameters
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Use case :How to pass params to Service methods? How to read args from the service Method?
+
+Parameters are stored inside special object called "Context"
+
+Context Object:
+
+1.Similar to Broker Object
+2.It has all capacity of Broker object
+3.Context object is used inside service definitions , where ever you require broker
+  Object reference.
+
+context object already created, and its reference is available inside "Service method" as args.
+
+Reading parameters
+
+1.context.params 
+  params are literal object what ever parameter we pass, it will be inside ctx
+
+context.params.variable
+const { ServiceBroker } = require('moleculer')
+
+const broker = new ServiceBroker()
+
+broker.createService({
+    name: 'math',
+    actions: {
+        multiply(ctx) {
+            // const params = ctx.params
+            // return params.a * params * b
+            const { a, b } = ctx.params
+            return a * b
+        }
+    }
+})
+
+
+async function main() {
+    try {
+        await broker.start()
+        const res = await broker.call('math.multiply', { a: 10, b: 20 })
+        console.log(`The Result is ${res}`)
+    }
+    catch (err) {
+        console.log('Broker is Failed to start', err)
+    }
+}
+main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+			Actions syntax and action parameter validation
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  Input param validation and action syntax
+
+Syntax : 1
+
+broker.createService({
+    name: "math",
+    actions: {
+       add(ctx) {
+            const { a, b } = ctx.params
+            const res = a + b 
+            return `Result = ${res}`
+        },
+    }
+})
+
+Syntax 2:
+broker.createService({
+    name: "math",
+    actions: {
+      add: {
+         //method meta information
+        handler(ctx){
+          //biz logic
+       }   
+      }
+    }
+})
+
+const { ServiceBroker } = require('moleculer')
+
+const broker = new ServiceBroker()
+
+broker.createService({
+    name: 'math',
+    actions: {
+        //syntax   1:
+        // multiply(ctx) {
+        //     const { a, b } = ctx.params
+        //     return a * b
+        // }
+        //syntax 2:
+
+        multiply: {
+            //meta information/extra information of that method like validation
+            params: {
+                a: 'number',
+                b: {
+                    type: 'number', positive: true, integer: true
+                }
+            },
+            handler(ctx) {
+                const { a, b } = ctx.params
+                return a * b
+            }
+        }
+    }
+})
+
+
+async function main() {
+    try {
+        await broker.start()
+        // const res = await broker.call('math.multiply', { a: 10, b: 20 })
+        // const res = await broker.call('math.multiply', { a: '10', b: 20 })
+        // const res = await broker.call('math.multiply', { a: 10, b: -20 })
+        const res = await broker.call('math.multiply', { a: 10, b: 20.5 })
+
+
+        console.log(`The Result is ${res}`)
+    }
+    catch (err) {
+        console.log('Broker is Failed to start', err)
+    }
+}
+main()
