@@ -1319,3 +1319,965 @@ async function main() {
     }
 }
 main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+				API Gate-Building Rest API
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+moleculer-web :
+   The moleculer-web is the official API gateway service for Moleculer framework.
+    Use it to publish your services as RESTful APIs.
+
+Features
+1.support HTTP & HTTPS
+2.serve static files
+3.multiple routes
+4.support Connect-like middlewares in global-level, route-level and alias-level.
+5.alias names (with named parameters & REST routes)
+6.whitelist
+7.multiple body parsers (json, urlencoded)
+8.CORS headers
+9.Rate limiter
+10.before & after call hooks
+11.Buffer & Stream handling
+12.middleware mode (use as a middleware with Express)
+
+Use case : Setup Simple Webserver(API GATEWAY)
+
+
+const { ServiceBroker } = require('moleculer')
+const ApiGateWay = require('moleculer-web')
+
+const broker = new ServiceBroker({
+    serializer: "JSON" // not necessary to set, because it is the default
+})
+broker.createService({
+    name: 'ApiGateWay',
+    mixins: [ApiGateWay]
+})
+
+async function main() {
+    try {
+        await broker.start()
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+													 configurations -routes
+.......................................................................................................................................................................................................................................
+routes maps urls
+
+const { ServiceBroker } = require('moleculer')
+const ApiGateWay = require('moleculer-web')
+
+const broker = new ServiceBroker({
+    serializer: "JSON" // not necessary to set, because it is the default
+})
+broker.createService({
+    name: 'ApiGateWay',
+    mixins: [ApiGateWay],
+    settings: {
+        routes: [
+            {
+                path: '/api'
+            }
+        ]
+    }
+})
+
+async function main() {
+    try {
+        await broker.start()
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										Invoking services via Gateway
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+const { ServiceBroker } = require('moleculer')
+const ApiGateWay = require('moleculer-web')
+
+const broker = new ServiceBroker({
+    serializer: "JSON" // not necessary to set, because it is the default
+})
+
+//calling 
+//http://localhost:3000/api/servicename/methodname
+broker.createService({
+    name: 'greeter',
+    actions: {
+        sayGreet() {
+            return 'Hello Microservices'
+        }
+    }
+})
+
+broker.createService({
+    name: 'ApiGateWay',
+    mixins: [ApiGateWay],
+    settings: {
+        routes: [
+            {
+                path: '/api'
+            }
+        ]
+    }
+})
+
+async function main() {
+    try {
+        await broker.start()
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+main()
+
+Invocation:
+ http://localhost:3000/api/serviceName/actionName -  syntax
+
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+		How to restrict service method/actions access outside
+			whiteList - configuration
+..........................................................................................................................................................................................................................................
+The whitelist configuration in web api gateway controls which service actions are allowed to be called via REST endpoints.
+It acts as a security layer to prevent unauthorized or unintended service actions from being exposed publicly.
+
+If you don’t want to publish all actions, you can filter them with whitelist option.
+
+const { ServiceBroker } = require('moleculer')
+const ApiGateWay = require('moleculer-web')
+
+const broker = new ServiceBroker({
+    serializer: "JSON" // not necessary to set, because it is the default
+})
+
+//calling 
+//http://localhost:3000/api/servicename/methodname
+broker.createService({
+    name: 'greeter',
+    actions: {
+        sayGreet() {
+            return 'Greet Microservices'
+        },
+        sayHello() {
+            return 'Hello Microservices'
+        },
+        sayHai() {
+            return 'Hai Microservices'
+        }
+    }
+})
+
+broker.createService({
+    name: 'ApiGateWay',
+    mixins: [ApiGateWay],
+    settings: {
+        routes: [
+            {
+                path: '/api',
+                whitelist: [
+                    // this method is available outside
+                    "greeter.sayHello"
+                ]
+            }
+        ]
+    }
+})
+
+async function main() {
+    try {
+        await broker.start()
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+				URL Mapping in moleculer
+........................................................................................................................................................................................................................................
+
+http://localhost:3000/api/serviceName/actionName
+
+  This is not good way to map URLs , which more difficult to remember, it is not user friendly
+   it is not even secure, the reason, we expose the back end service to end users.
+
+Aliases:
+........
+  You can use aliases(dummyname/fakename)-Virtual path, instead of action name.
+
+You can use alias names instead of action names. You can also specify the method. Otherwise it will handle every method types.
+
+const { ServiceBroker } = require('moleculer')
+const ApiGateWay = require('moleculer-web')
+
+const broker = new ServiceBroker({
+    serializer: "JSON" // not necessary to set, because it is the default
+})
+
+//calling 
+//http://localhost:3000/api/servicename/methodname
+broker.createService({
+    name: 'greeter',
+    actions: {
+        sayGreet() {
+            return 'Greet Microservices'
+        },
+        sayHello() {
+            return 'Hello Microservices'
+        },
+        sayHai() {
+            return 'Hai Microservices'
+        }
+    }
+})
+
+broker.createService({
+    name: 'ApiGateWay',
+    mixins: [ApiGateWay],
+    settings: {
+        routes: [
+            {
+                path: '/api',
+                aliases: {
+                    // /api/hello
+                    'hello': "greeter.sayHello",
+                    'hai': "greeter.sayHai",
+                    'greet': 'greeter.sayGreet'
+                }
+            }
+        ]
+    }
+})
+
+async function main() {
+    try {
+        await broker.start()
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+					CURD Binding
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+syntax:
+                aliases: {
+                    "GET products": "products.list",
+                    "GET products/:id": "products.get", //products/1 products/2 
+                    "POST products": "products.create",
+                    "PUT products/:id": "products.update",
+                    "DELETE products/:id": "products.remove"
+                }
+
+const { ServiceBroker } = require('moleculer')
+const ApiGateWay = require('moleculer-web')
+
+const broker = new ServiceBroker({
+    serializer: "JSON" // not necessary to set, because it is the default
+})
+
+broker.createService({
+    name: 'products',
+    actions: {
+        list: {
+            handler(ctx) {
+                return 'Get all Products'
+            }
+        },
+        get: {
+            handler(ctx) {
+                return 'Get Products By Id'
+            }
+        },
+        create: {
+            handler(ctx) {
+                return 'Post  Products'
+            }
+        },
+        update: {
+            handler(ctx) {
+                return 'Update all Products'
+            }
+        },
+        remove: {
+            handler(ctx) {
+                return 'Remove  Products'
+            }
+        }
+    }
+})
+
+broker.createService({
+    name: 'ApiGateWay',
+    mixins: [ApiGateWay],
+    settings: {
+        routes: [
+            {
+                path: '/api',
+                aliases: {
+                    "GET products": "products.list",
+                    "GET products/:id": "products.get", //products/1 products/2 
+                    "POST products": "products.create",
+                    "PUT products/:id": "products.update",
+                    "DELETE products/:id": "products.remove"
+                }
+            }
+        ]
+    }
+})
+
+async function main() {
+    try {
+        await broker.start()
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+						CURD - Payload and Params
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+const { ServiceBroker } = require('moleculer')
+const ApiGateWay = require('moleculer-web')
+
+const broker = new ServiceBroker({
+    serializer: "JSON" // not necessary to set, because it is the default
+})
+
+broker.createService({
+    name: 'products',
+    actions: {
+        list: {
+            handler(ctx) {
+                return 'Get all Products'
+            }
+        },
+        get: {
+            handler(ctx) {
+                const params = ctx.params
+                console.log(params)
+                return 'Get Products By Id ' + params.id
+            }
+        },
+        create: {
+            handler(ctx) {
+                const payload = ctx.params
+                console.log(payload)
+                return 'Post  Products'
+            }
+        },
+        update: {
+            handler(ctx) {
+                return 'Update all Products'
+            }
+        },
+        remove: {
+            handler(ctx) {
+                return 'Remove  Products'
+            }
+        }
+    }
+})
+
+broker.createService({
+    name: 'ApiGateWay',
+    mixins: [ApiGateWay],
+    settings: {
+        routes: [
+            {
+                path: '/api',
+                aliases: {
+                    "GET products": "products.list",
+                    "GET products/:id": "products.get", //products/1 products/2 
+                    "POST products": "products.create",
+                    "PUT products/:id": "products.update",
+                    "DELETE products/:id": "products.remove"
+                }
+            }
+        ]
+    }
+})
+
+async function main() {
+    try {
+        await broker.start()
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+					Multi Resources
+************************************************************************************************************************************************************
+
+const { ServiceBroker } = require('moleculer')
+const ApiGateWay = require('moleculer-web')
+
+const broker = new ServiceBroker({
+    serializer: "JSON" // not necessary to set, because it is the default
+})
+
+broker.createService({
+    name: 'products',
+    actions: {
+        list: {
+            handler(ctx) {
+                return 'Get all Products'
+            }
+        },
+        get: {
+            handler(ctx) {
+                const params = ctx.params
+                console.log(params)
+                return 'Get Products By Id ' + params.id
+            }
+        },
+        create: {
+            handler(ctx) {
+                const payload = ctx.params
+                console.log(payload)
+                return 'Post  Products'
+            }
+        },
+        update: {
+            handler(ctx) {
+                return 'Update all Products'
+            }
+        },
+        remove: {
+            handler(ctx) {
+                return 'Remove  Products'
+            }
+        }
+    }
+})
+
+broker.createService({
+    name: 'customers',
+    actions: {
+        list: {
+            handler(ctx) {
+                return 'Get all customers'
+            }
+        },
+        get: {
+            handler(ctx) {
+                const params = ctx.params
+                console.log(params)
+                return 'Get customers By Id ' + params.id
+            }
+        },
+        create: {
+            handler(ctx) {
+                const payload = ctx.params
+                console.log(payload)
+                return 'Post  customers'
+            }
+        },
+        update: {
+            handler(ctx) {
+                return 'Update customers'
+            }
+        },
+        remove: {
+            handler(ctx) {
+                return 'Remove  customers'
+            }
+        }
+    }
+})
+
+broker.createService({
+    name: 'ApiGateWay',
+    mixins: [ApiGateWay],
+    settings: {
+        routes: [
+            {
+                path: '/api',
+                aliases: {
+                    //Products Resource
+                    "GET products": "products.list",
+                    "GET products/:id": "products.get", //products/1 products/2 
+                    "POST products": "products.create",
+                    "PUT products/:id": "products.update",
+                    "DELETE products/:id": "products.remove",
+
+                    //customers Resource
+                    "GET customers": "customers.list",
+                    "GET customers/:id": "customers.get", //products/1 products/2 
+                    "POST customers": "customers.create",
+                    "PUT customers/:id": "customers.update",
+                    "DELETE customers/:id": "customers.remove"
+                }
+            }
+        ]
+    }
+})
+
+async function main() {
+    try {
+        await broker.start()
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+			What if the Resource is Growing
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+aliases: {
+                    //Products Resource
+                    "GET products": "products.list",
+                    "GET products/:id": "products.get", //products/1 products/2 
+                    "POST products": "products.create",
+                    "PUT products/:id": "products.update",
+                    "DELETE products/:id": "products.remove",
+
+                    //customers Resource
+                    "GET customers": "customers.list",
+                    "GET customers/:id": "customers.get", //products/1 products/2 
+                    "POST customers": "customers.create",
+                    "PUT customers/:id": "customers.update",
+                    "DELETE customers/:id": "customers.remove"
+                }
+
+Can we simplify this?
+Yes!
+ Automation, automatic code generation.
+
+Way 1;
+ REST path: service
+
+it will map actions automatically but there is rule , method names should be like below
+ aliases: { 
+   "REST users" : "users"
+ }
+ list
+ get
+ save
+ update
+ remove
+
+eg:
+const { ServiceBroker } = require('moleculer')
+const ApiGateWay = require('moleculer-web')
+
+const broker = new ServiceBroker({
+    serializer: "JSON" // not necessary to set, because it is the default
+})
+
+broker.createService({
+    name: 'products',
+    actions: {
+        list: {
+            handler(ctx) {
+                return 'Get all Products'
+            }
+        },
+        get: {
+            handler(ctx) {
+                const params = ctx.params
+                console.log(params)
+                return 'Get Products By Id ' + params.id
+            }
+        },
+        create: {
+            handler(ctx) {
+                const payload = ctx.params
+                console.log(payload)
+                return 'Post  Products'
+            }
+        },
+        update: {
+            handler(ctx) {
+                return 'Update all Products'
+            }
+        },
+        remove: {
+            handler(ctx) {
+                return 'Remove  Products'
+            }
+        }
+    }
+})
+
+broker.createService({
+    name: 'customers',
+    actions: {
+        list: {
+            handler(ctx) {
+                return 'Get all customers'
+            }
+        },
+        get: {
+            handler(ctx) {
+                const params = ctx.params
+                console.log(params)
+                return 'Get customers By Id ' + params.id
+            }
+        },
+        create: {
+            handler(ctx) {
+                const payload = ctx.params
+                console.log(payload)
+                return 'Post  customers'
+            }
+        },
+        update: {
+            handler(ctx) {
+                return 'Update customers'
+            }
+        },
+        remove: {
+            handler(ctx) {
+                return 'Remove  customers'
+            }
+        }
+    }
+})
+
+broker.createService({
+    name: 'ApiGateWay',
+    mixins: [ApiGateWay],
+    settings: {
+        routes: [
+            {
+                path: '/api',
+                aliases: {
+                    "REST products": "products",
+                    "REST customers ": "customers"
+                }
+            }
+        ]
+    }
+})
+
+async function main() {
+    try {
+        await broker.start()
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+			Auto aliases: without mapping rest api 
+....................................................................................................................................................................................................................................
+
+const { ServiceBroker } = require('moleculer')
+const ApiGateWay = require('moleculer-web')
+
+const broker = new ServiceBroker({
+    serializer: "JSON" // not necessary to set, because it is the default
+})
+
+//back end service can be converted as rest api
+
+broker.createService({
+    name: 'products',
+    actions: {
+        list: {
+            rest: "GET /",
+            handler(ctx) {
+                return 'Get all Products'
+            }
+        },
+        get: {
+            rest: "GET /:id",
+            handler(ctx) {
+                const params = ctx.params
+                console.log(params)
+                return 'Get Products By Id ' + params.id
+            }
+        },
+        create: {
+            rest: "POST /",
+            handler(ctx) {
+                const payload = ctx.params
+                console.log(payload)
+                return 'Post  Products'
+            }
+        },
+        update: {
+            rest: "PUT /:id",
+            handler(ctx) {
+                return 'Update all Products'
+            }
+        },
+        remove: {
+            rest: "DELETE /:id",
+            handler(ctx) {
+                return 'Remove  Products'
+            }
+        }
+    }
+})
+
+
+broker.createService({
+    name: 'ApiGateWay',
+    mixins: [ApiGateWay],
+    settings: {
+        routes: [
+            {
+                path: '/api',
+                aliases: {
+                    //custom end point configuration
+                },
+                autoAliases: true
+            }
+        ]
+    }
+})
+
+async function main() {
+    try {
+        await broker.start()
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+			 Service Communication - Local services
+	REST Service to Back End Service ---->Third party Service communication 
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+const { ServiceBroker } = require('moleculer')
+const ApiGateWay = require('moleculer-web')
+
+const broker = new ServiceBroker({
+    serializer: "JSON" // not necessary to set, because it is the default
+})
+
+broker.createService({
+    name: 'productservice',
+    actions: {
+        findAll: {
+            async handler(ctx) {
+                const products = await fetch('https://dummyjson.com/products')
+                const productsJson = await products.json()
+                return productsJson
+            }
+        },
+        findById: {
+            async handler(ctx) {
+                const id = Number(ctx.params.id)
+                const url = `https://dummyjson.com/products/${id}`
+                const response = await fetch(url)
+                const product = await response.json()
+                return product
+            }
+        }
+    }
+})
+
+broker.createService({
+    name: 'products',
+    actions: {
+        list: {
+            rest: "GET /",
+            async handler(ctx) {
+                const products = await ctx.call('productservice.findAll')
+                return products
+            }
+        },
+        get: {
+            rest: "GET /:id",
+            async handler(ctx) {
+                const { id } = ctx.params
+                const product = await ctx.call('productservice.findById', { id: id })
+                return product
+                
+            }
+        },
+        create: {
+            rest: "POST /",
+            handler(ctx) {
+                const payload = ctx.params
+                console.log(payload)
+                return 'Post  Products'
+            }
+        },
+        update: {
+            rest: "PUT /:id",
+            handler(ctx) {
+                return 'Update all Products'
+            }
+        },
+        remove: {
+            rest: "DELETE /:id",
+            handler(ctx) {
+                return 'Remove  Products'
+            }
+        }
+    }
+})
+
+
+broker.createService({
+    name: 'ApiGateWay',
+    mixins: [ApiGateWay],
+    settings: {
+        routes: [
+            {
+                path: '/api',
+                aliases: {
+                    //custom end point configuration
+                },
+                autoAliases: true
+            }
+        ]
+    }
+})
+
+async function main() {
+    try {
+        await broker.start()
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+main()
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									Service Communication -Remote Services
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+App1: Back end service:
+........................................
+const { ServiceBroker } = require('moleculer')
+
+const broker = new ServiceBroker({
+    transporter: 'TCP'
+})
+
+broker.createService({
+    name: 'productservice',
+    actions: {
+        findAll: {
+            async handler(ctx) {
+                const products = await fetch('https://dummyjson.com/products')
+                const productsJson = await products.json()
+                return productsJson
+            }
+        },
+        findById: {
+            async handler(ctx) {
+                const id = Number(ctx.params.id)
+                const url = `https://dummyjson.com/products/${id}`
+                const response = await fetch(url)
+                const product = await response.json()
+                return product
+            }
+        }
+    }
+})
+
+
+
+
+
+async function main() {
+    try {
+        await broker.start()
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+main()
+
+App 2: Front End Service:
+const { ServiceBroker } = require('moleculer')
+const ApiGateWay = require('moleculer-web')
+
+const broker = new ServiceBroker({
+    transporter: 'TCP'
+})
+
+broker.createService({
+    name: 'products',
+    actions: {
+        list: {
+            rest: "GET /",
+            async handler(ctx) {
+                const products = await ctx.call('productservice.findAll')
+                return products
+            }
+        },
+        get: {
+            rest: "GET /:id",
+            async handler(ctx) {
+                const { id } = ctx.params
+                const product = await ctx.call('productservice.findById', { id: id })
+                return product
+                
+            }
+        },
+        create: {
+            rest: "POST /",
+            handler(ctx) {
+                const payload = ctx.params
+                console.log(payload)
+                return 'Post  Products'
+            }
+        },
+        update: {
+            rest: "PUT /:id",
+            handler(ctx) {
+                return 'Update all Products'
+            }
+        },
+        remove: {
+            rest: "DELETE /:id",
+            handler(ctx) {
+                return 'Remove  Products'
+            }
+        }
+    }
+})
+
+broker.createService({
+    name: 'ApiGateWay',
+    mixins: [ApiGateWay],
+    settings: {
+        routes: [
+            {
+                path: '/api',
+                aliases: {
+                    //custom end point configuration
+                },
+                autoAliases: true
+            }
+        ]
+    }
+})
+
+async function main() {
+    try {
+        await broker.start()
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+main()
